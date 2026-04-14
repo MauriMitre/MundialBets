@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Match Predictions | THE PODIUM</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;family=Lexend:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "background": "#131313",
+                        "inverse-primary": "#1b6d24",
+                        "surface": "#131313",
+                        "on-tertiary-fixed-variant": "#454747",
+                        "primary-fixed": "#a3f69c",
+                        "surface-container-lowest": "#0e0e0e",
+                        "error": "#ffb4ab",
+                        "secondary-fixed-dim": "#e9c400",
+                        "primary-container": "#004e10",
+                        "surface-container": "#201f1f",
+                        "on-secondary-container": "#725f00",
+                        "surface-variant": "#353534",
+                        "error-container": "#93000a",
+                        "on-surface": "#e5e2e1",
+                        "surface-bright": "#393939",
+                        "on-primary": "#003909",
+                        "surface-dim": "#131313",
+                        "tertiary-container": "#414343",
+                        "on-secondary-fixed": "#221b00",
+                        "on-tertiary-container": "#afafb0",
+                        "inverse-on-surface": "#313030",
+                        "surface-tint": "#88d982",
+                        "on-background": "#e5e2e1",
+                        "on-surface-variant": "#bfc9bf",
+                        "on-error": "#690005",
+                        "surface-container-high": "#2a2a2a",
+                        "primary": "#88d982",
+                        "primary-fixed-dim": "#88d982",
+                        "inverse-surface": "#e5e2e1",
+                        "secondary": "#fff9ef",
+                        "on-primary-container": "#71c16d",
+                        "on-primary-fixed-variant": "#005312",
+                        "outline-variant": "#404942",
+                        "surface-container-highest": "#353534",
+                        "tertiary": "#c6c6c7",
+                        "on-tertiary": "#2f3131",
+                        "secondary-container": "#ffdb3c",
+                        "on-secondary": "#3a3000",
+                        "surface-container-low": "#1c1b1b",
+                        "on-primary-fixed": "#002204",
+                        "secondary-fixed": "#ffe16d",
+                        "on-tertiary-fixed": "#1a1c1c",
+                        "on-secondary-fixed-variant": "#544600",
+                        "tertiary-fixed": "#e2e2e2",
+                        "tertiary-fixed-dim": "#c6c6c7",
+                        "outline": "#8a938a",
+                        "on-error-container": "#ffdad6"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "headline": ["Space Grotesk"],
+                        "body": ["Plus Jakarta Sans"],
+                        "label": ["Lexend"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-card {
+            background: rgba(53, 53, 52, 0.4);
+            backdrop-filter: blur(16px);
+        }
+        .gradient-cta {
+            background: linear-gradient(135deg, #88d982 0%, #004e10 100%);
+        }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #131313; }
+        ::-webkit-scrollbar-thumb { background: #353534; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body selection:bg-primary/30">
+<!-- TopNavBar -->
+<header class="fixed top-0 w-full z-50 flex justify-between items-center px-6 h-20 w-full bg-[#131313] shadow-[0_4px_30px_rgba(136,217,130,0.06)] font-['Space_Grotesk'] tracking-tight">
+<div class="text-2xl font-bold tracking-tighter text-[#FFF9EF]">THE PODIUM</div>
+<nav class="hidden md:flex gap-8">
+<a class="text-[#FFF9EF]/60 font-medium hover:text-[#88D982] transition-colors duration-300" href="#">Dashboard</a>
+<a class="text-[#88D982] font-bold border-b-2 border-[#88D982]" href="#">Predictions</a>
+<a class="text-[#FFF9EF]/60 font-medium hover:text-[#88D982] transition-colors duration-300" href="#">Leaderboard</a>
+<a class="text-[#FFF9EF]/60 font-medium hover:text-[#88D982] transition-colors duration-300" href="#">Rules</a>
+</nav>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#88D982] cursor-pointer hover:scale-95 transition-transform">notifications</span>
+<span class="material-symbols-outlined text-[#88D982] cursor-pointer hover:scale-95 transition-transform">emoji_events</span>
+<div class="w-10 h-10 rounded-full border border-outline-variant overflow-hidden">
+<img alt="User profile with total points display" data-alt="professional portrait of a young sports analyst with a friendly expression in high-key studio lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBJmNIeY94JG4uuiyBQwhFCQiiFwnnDo2IeEyfy0WXBuIwPcJcaYrNLjTfUxuOF9KjCY2eFLSKEe4V3kt_-48BVtGVb22I5HApYNQvXKSryOqUhGqdKbH4372XipOeH581BdMF4TX8ikRhoMQJ-Y6IN5eP9A_itIKq4HnNd8eOvxPrmsn1p-3mvbQFrs8de6GTiS5j2D2dE18f2kWaDQLDmNwDs06wUKhxbX-QpVBdBbT7pSRtw9n8mSYzQh-bKHqeCSoZNcRtC9HEY"/>
+</div>
+</div>
+</header>
+<!-- SideNavBar (Hidden on Mobile) -->
+<aside class="hidden lg:flex flex-col fixed left-0 top-0 h-full py-8 h-screen w-64 bg-[#131313] bg-[#1c1c1c] z-40 pt-28 px-4 font-['Plus_Jakarta_Sans'] text-sm">
+<div class="mb-10 px-4">
+<div class="text-[#FFDB3C] font-['Space_Grotesk'] font-black text-xl">World Cup Arena</div>
+<div class="text-[#FFF9EF]/50 text-xs tracking-widest uppercase mt-1">Elite Betting League</div>
+</div>
+<div class="flex flex-col gap-2 flex-grow">
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-[#FFF9EF]/70 hover:bg-[#1c1c1c] hover:text-[#88D982] transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span> Dashboard
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-[#88D982]/20 to-transparent text-[#88D982] border-l-4 border-[#88D982] transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="sports_soccer">sports_soccer</span> Predictions
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-[#FFF9EF]/70 hover:bg-[#1c1c1c] hover:text-[#88D982] transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="leaderboard">leaderboard</span> Leaderboard
+            </a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-[#FFF9EF]/70 hover:bg-[#1c1c1c] hover:text-[#88D982] transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="gavel">gavel</span> Rules
+            </a>
+</div>
+<button class="mx-4 mb-8 bg-gradient-to-r from-primary to-primary-container text-on-primary font-bold py-3 rounded-full shadow-lg shadow-primary/10">Place Bet</button>
+<div class="flex flex-col gap-1 border-t border-outline-variant/10 pt-4">
+<a class="flex items-center gap-3 px-4 py-2 text-[#FFF9EF]/40 hover:text-[#88D982] transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span> Settings
+            </a>
+<a class="flex items-center gap-3 px-4 py-2 text-[#FFF9EF]/40 hover:text-[#88D982] transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="help">help</span> Support
+            </a>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="lg:ml-64 pt-28 pb-32 px-6 md:px-12 max-w-7xl mx-auto min-h-screen">
+<!-- Header Section -->
+<div class="mb-12 relative">
+<div class="absolute -top-10 -left-10 w-64 h-64 bg-primary/5 rounded-full blur-[100px] pointer-events-none"></div>
+<h1 class="font-headline text-5xl md:text-7xl font-bold tracking-tighter text-on-surface mb-4 uppercase">Predict &amp; <span class="text-primary">Conquer</span></h1>
+<p class="font-body text-on-surface-variant max-w-2xl text-lg">Lock in your predictions for the Group Stage. Precision pays off. Every goal and assist counts toward your podium standing.</p>
+</div>
+<!-- Progress Sticky (Mobile Only) -->
+<div class="md:hidden glass-card p-4 rounded-full mb-8 flex justify-between items-center border border-outline-variant/10">
+<div class="flex items-center gap-2">
+<div class="w-12 h-2 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="w-3/4 h-full bg-primary"></div>
+</div>
+<span class="font-label text-xs">12/16 COMPLETED</span>
+</div>
+<span class="text-primary font-bold text-sm uppercase">Next: Day 4</span>
+</div>
+<!-- Match Group: Date 1 -->
+<section class="mb-16">
+<div class="flex items-baseline gap-4 mb-8">
+<h2 class="font-headline text-3xl font-bold text-secondary-container">Tuesday, June 18</h2>
+<span class="font-label text-xs tracking-widest text-on-surface-variant/40 uppercase">Matchday 04</span>
+</div>
+<div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
+<!-- Match Card: Germany vs Scotland (PREDICTED) -->
+<div class="group relative bg-surface-container-low rounded-2xl p-8 transition-all duration-300 hover:bg-surface-container overflow-hidden">
+<!-- Status Indicator -->
+<div class="absolute top-0 right-0 px-6 py-2 bg-primary/20 text-primary font-label text-[10px] tracking-[0.2em] rounded-bl-xl uppercase font-bold flex items-center gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span> Predicted
+                    </div>
+<div class="flex flex-col gap-10">
+<!-- Match Header -->
+<div class="flex justify-between items-center px-4">
+<!-- Home Team -->
+<div class="flex flex-col items-center gap-4 w-32 text-center">
+<div class="w-20 h-20 rounded-full border-4 border-surface-container-highest overflow-hidden shadow-2xl">
+<img alt="Germany Flag" data-alt="vibrant high-resolution flag of Germany with smooth fabric texture and soft shadows" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDZ8AsfXkCa2cYFDxkESZDmNR_EAdmHHIEyVTbPeUyxlRe19NcX10pjqqzhxXyErr3MDk1AR31dyA09sRWQjNblgCvJII8Vu5FUdlUOYz1mllPBJcOhmqIGG2abZgG5zbIU8S1umzARuC5F11PI-ubRekwWrRoUVpyw8lerTg5MKnMhLkwUQjTTuTLspbvH-YUnxNfMz-7NIbIq4uf47erKHasL3WGFxcNPWLUPlR2w8zGlax1rSbAhNMRDsdOIlXTe8YQuwrQj1YBc"/>
+</div>
+<span class="font-headline text-lg font-bold tracking-tight">GERMANY</span>
+</div>
+<!-- Score Input -->
+<div class="flex items-center gap-4">
+<input class="w-16 h-20 bg-surface-container-lowest border-none rounded-xl text-center font-headline text-4xl font-bold focus:ring-2 focus:ring-primary/50 text-primary" type="number" value="3"/>
+<span class="text-on-surface-variant/30 font-headline text-2xl">:</span>
+<input class="w-16 h-20 bg-surface-container-lowest border-none rounded-xl text-center font-headline text-4xl font-bold focus:ring-2 focus:ring-primary/50 text-primary" type="number" value="1"/>
+</div>
+<!-- Away Team -->
+<div class="flex flex-col items-center gap-4 w-32 text-center">
+<div class="w-20 h-20 rounded-full border-4 border-surface-container-highest overflow-hidden shadow-2xl">
+<img alt="Scotland Flag" data-alt="vibrant high-resolution flag of Scotland featuring the white saltire on a blue field with silk texture" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCr5diMQHRvkjKfI0-uI3a6fLWq8dRgEKTrkSRFDoIl2_kiMgKK8-XtrLAVzb6z9CilQ_cPmK9qeY49ibvXIZdb5acHDDyxSOeu2eXF5JmMK4DcgOGrz2pOKYFLOdsUPWJUy2aC-Lq3ozqxc6h-YvwjqwlR4Nx_a5p48pwf_ro6qI40DP47sJhRDg-QSq2Clhr82yoLcU0SCV3ikGYk5qea_sXKUy8I_ilPkFyBwd9SqNNCPHkpzI6ZhWb3NnxvuP6_Q0NGapS-M_tf"/>
+</div>
+<span class="font-headline text-lg font-bold tracking-tight">SCOTLAND</span>
+</div>
+</div>
+<!-- Stats/Details -->
+<div class="grid grid-cols-2 gap-4">
+<div class="space-y-2">
+<label class="font-label text-[10px] text-on-surface-variant/60 uppercase tracking-widest pl-1">Goleador (Scorer)</label>
+<div class="relative">
+<input class="w-full bg-surface-container-lowest border-none rounded-lg px-4 py-3 font-body text-sm focus:ring-1 focus:ring-primary/30" type="text" value="Kai Havertz"/>
+<span class="material-symbols-outlined absolute right-3 top-2.5 text-on-surface-variant/40 text-sm">search</span>
+</div>
+</div>
+<div class="space-y-2">
+<label class="font-label text-[10px] text-on-surface-variant/60 uppercase tracking-widest pl-1">Asistente (Assist)</label>
+<div class="relative">
+<input class="w-full bg-surface-container-lowest border-none rounded-lg px-4 py-3 font-body text-sm focus:ring-1 focus:ring-primary/30" type="text" value="Jamal Musiala"/>
+<span class="material-symbols-outlined absolute right-3 top-2.5 text-on-surface-variant/40 text-sm">search</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Match Card: Hungary vs Switzerland (PENDING) -->
+<div class="group relative bg-surface-container-low rounded-2xl p-8 transition-all duration-300 hover:bg-surface-container overflow-hidden">
+<!-- Status Indicator -->
+<div class="absolute top-0 right-0 px-6 py-2 bg-surface-container-highest text-on-surface-variant/60 font-label text-[10px] tracking-[0.2em] rounded-bl-xl uppercase font-bold flex items-center gap-2">
+                         Pending
+                    </div>
+<div class="flex flex-col gap-10">
+<!-- Match Header -->
+<div class="flex justify-between items-center px-4">
+<!-- Home Team -->
+<div class="flex flex-col items-center gap-4 w-32 text-center">
+<div class="w-20 h-20 rounded-full border-4 border-surface-container-highest overflow-hidden shadow-2xl opacity-80 group-hover:opacity-100 transition-opacity">
+<img alt="Hungary Flag" data-alt="vibrant high-resolution flag of Hungary with tricolor stripes in a clean studio setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBOnuZNB4667wdXA64iQ5EUNUvRZxbPpUkeCPr9PjgRPVfwwjLMyQGctavaHXAhsPHkbAHOOTReYzFvgo1iqS00FjwLyrvFeNFGkHw_Mspzp2N0q9fVtz06CuZWXYyZlwUyjnSWPFYJjZNaTtrVgJtdo3-EIjrz5U1DsvOTgSBGMrK_3weYpKoTX5h14RxE1ZIcPf2uvCPYiaB4guxBUkzARmc54CSnZ0VxG4Z4bzsjC6U_spLmcuYjj_3_UJX3IT0oDOpHxyxipvah"/>
+</div>
+<span class="font-headline text-lg font-bold tracking-tight">HUNGARY</span>
+</div>
+<!-- Score Input -->
+<div class="flex items-center gap-4">
+<input class="w-16 h-20 bg-surface-container-lowest border border-outline-variant/20 rounded-xl text-center font-headline text-4xl font-bold focus:ring-2 focus:ring-primary/50 placeholder:text-on-surface-variant/20" placeholder="0" type="number"/>
+<span class="text-on-surface-variant/30 font-headline text-2xl">:</span>
+<input class="w-16 h-20 bg-surface-container-lowest border border-outline-variant/20 rounded-xl text-center font-headline text-4xl font-bold focus:ring-2 focus:ring-primary/50 placeholder:text-on-surface-variant/20" placeholder="0" type="number"/>
+</div>
+<!-- Away Team -->
+<div class="flex flex-col items-center gap-4 w-32 text-center">
+<div class="w-20 h-20 rounded-full border-4 border-surface-container-highest overflow-hidden shadow-2xl opacity-80 group-hover:opacity-100 transition-opacity">
+<img alt="Switzerland Flag" data-alt="vibrant high-resolution flag of Switzerland with a bold white cross on red background in a studio setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCqz51oB3B1BW-kyKrAjd04gRiru9DcF3uQ4Sn1H0Xn07uZwKi-X8mh8fKbIovz9oZ15EsjUWBYsnU1lRx-cVBJY5_B9YqdUHHVhsZkvVFa1GwXwS37_G9apYDFafoxblHjqLSQtkRaGPcpdLliJF06yVcC5miod92Eyide_nVAjFV74gZyBkIxbIfK0Fk6RhqTVYfCbgfXGh4MFP70prnEEkgQj5donI_dXmQo_ji7vfR4byDp8lNkdHPK1Yk_jiZf-MSCKPsHXyFH"/>
+</div>
+<span class="font-headline text-lg font-bold tracking-tight">SWITZERLAND</span>
+</div>
+</div>
+<!-- Stats/Details -->
+<div class="grid grid-cols-2 gap-4">
+<div class="space-y-2">
+<label class="font-label text-[10px] text-on-surface-variant/60 uppercase tracking-widest pl-1">Goleador (Scorer)</label>
+<div class="relative">
+<select class="w-full bg-surface-container-lowest border border-outline-variant/20 rounded-lg px-4 py-3 font-body text-sm focus:ring-1 focus:ring-primary/30 appearance-none">
+<option disabled="" selected="">Select Player</option>
+<option>D. Szoboszlai</option>
+<option>B. Embolo</option>
+<option>X. Shaqiri</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-2.5 text-on-surface-variant/40 text-sm pointer-events-none">expand_more</span>
+</div>
+</div>
+<div class="space-y-2">
+<label class="font-label text-[10px] text-on-surface-variant/60 uppercase tracking-widest pl-1">Asistente (Assist)</label>
+<div class="relative">
+<select class="w-full bg-surface-container-lowest border border-outline-variant/20 rounded-lg px-4 py-3 font-body text-sm focus:ring-1 focus:ring-primary/30 appearance-none">
+<option disabled="" selected="">Select Player</option>
+<option>R. Sallai</option>
+<option>G. Xhaka</option>
+<option>M. Akanji</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-2.5 text-on-surface-variant/40 text-sm pointer-events-none">expand_more</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Match Group: Date 2 -->
+<section class="mb-16">
+<div class="flex items-baseline gap-4 mb-8">
+<h2 class="font-headline text-3xl font-bold text-secondary-container">Wednesday, June 19</h2>
+<span class="font-label text-xs tracking-widest text-on-surface-variant/40 uppercase">Matchday 05</span>
+</div>
+<div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
+<!-- Match Card: Spain vs Croatia (PENDING) -->
+<div class="group relative bg-surface-container-low rounded-2xl p-8 transition-all duration-300 hover:bg-surface-container overflow-hidden">
+<!-- Status Indicator -->
+<div class="absolute top-0 right-0 px-6 py-2 bg-surface-container-highest text-on-surface-variant/60 font-label text-[10px] tracking-[0.2em] rounded-bl-xl uppercase font-bold flex items-center gap-2">
+                        Pending
+                    </div>
+<div class="flex flex-col gap-10">
+<div class="flex justify-between items-center px-4">
+<div class="flex flex-col items-center gap-4 w-32 text-center">
+<div class="w-20 h-20 rounded-full border-4 border-surface-container-highest overflow-hidden shadow-2xl opacity-80 group-hover:opacity-100 transition-opacity">
+<img alt="Spain Flag" data-alt="vibrant high-resolution flag of Spain with its distinctive red and yellow stripes and coat of arms" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAEjlSv1z03dyLdAU7uh5U1LQurQOR4Gdu6oB1_h1cDG_u0XINXTGl4_TpIxwV3WggCRmsPJ4ropAiDdKDMNpqf5_Frlvzjm5G5CFvgt4QbozilXeW8mXJ4j3NWEg078Rt1xp4_Y0MeQiG4nuTOt4kn00YpSCTvIRAfLEhDRdYngzS-Yv5lVR8jOtiZORmakOp1Vo1cUbzXuf_fz2vDnKlo7jZ-nzGEL-D7dGf15Nu0Q9rRNPIa-bs4vuO1YMg87WJWvervS13vd-By"/>
+</div>
+<span class="font-headline text-lg font-bold tracking-tight">SPAIN</span>
+</div>
+<div class="flex items-center gap-4">
+<input class="w-16 h-20 bg-surface-container-lowest border border-outline-variant/20 rounded-xl text-center font-headline text-4xl font-bold focus:ring-2 focus:ring-primary/50 placeholder:text-on-surface-variant/20" placeholder="0" type="number"/>
+<span class="text-on-surface-variant/30 font-headline text-2xl">:</span>
+<input class="w-16 h-20 bg-surface-container-lowest border border-outline-variant/20 rounded-xl text-center font-headline text-4xl font-bold focus:ring-2 focus:ring-primary/50 placeholder:text-on-surface-variant/20" placeholder="0" type="number"/>
+</div>
+<div class="flex flex-col items-center gap-4 w-32 text-center">
+<div class="w-20 h-20 rounded-full border-4 border-surface-container-highest overflow-hidden shadow-2xl opacity-80 group-hover:opacity-100 transition-opacity">
+<img alt="Croatia Flag" data-alt="vibrant high-resolution flag of Croatia with its iconic red and white checkerboard shield" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDAXm5mJIvPiM63MzqNQ30YT0FbHFalfNWAusjgRNi43PiUdIRgtu9QTCMG-XB3NUWID4x3pOTPG7lRqt91BkjdZphK97aLq029O56_g82iYDSd_fGduqLYw46fWiwarlTKr4yJuNHaInCP7HCbdEZEctF0HRg9-sIjErn2Jz2j2OOOvRu4MauXK-a5JiOsBnLiKOtTGKmSPk9covq9C8d6Ab9kkKVdVotIqLP3ikfprQjE4onWLnNsKx_-Zn74sluZItOwCtJXqKt8"/>
+</div>
+<span class="font-headline text-lg font-bold tracking-tight">CROATIA</span>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="space-y-2">
+<label class="font-label text-[10px] text-on-surface-variant/60 uppercase tracking-widest pl-1">Goleador (Scorer)</label>
+<div class="relative">
+<select class="w-full bg-surface-container-lowest border border-outline-variant/20 rounded-lg px-4 py-3 font-body text-sm focus:ring-1 focus:ring-primary/30 appearance-none">
+<option disabled="" selected="">Select Player</option>
+<option>Alvaro Morata</option>
+<option>Andrej Kramaric</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-2.5 text-on-surface-variant/40 text-sm pointer-events-none">expand_more</span>
+</div>
+</div>
+<div class="space-y-2">
+<label class="font-label text-[10px] text-on-surface-variant/60 uppercase tracking-widest pl-1">Asistente (Assist)</label>
+<div class="relative">
+<select class="w-full bg-surface-container-lowest border border-outline-variant/20 rounded-lg px-4 py-3 font-body text-sm focus:ring-1 focus:ring-primary/30 appearance-none">
+<option disabled="" selected="">Select Player</option>
+<option>Pedri</option>
+<option>Luka Modric</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-2.5 text-on-surface-variant/40 text-sm pointer-events-none">expand_more</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Match Card: Italy vs Albania (PENDING) -->
+<div class="group relative bg-surface-container-low rounded-2xl p-8 transition-all duration-300 hover:bg-surface-container overflow-hidden">
+<div class="absolute top-0 right-0 px-6 py-2 bg-surface-container-highest text-on-surface-variant/60 font-label text-[10px] tracking-[0.2em] rounded-bl-xl uppercase font-bold flex items-center gap-2">
+                        Pending
+                    </div>
+<div class="flex flex-col gap-10">
+<div class="flex justify-between items-center px-4">
+<div class="flex flex-col items-center gap-4 w-32 text-center">
+<div class="w-20 h-20 rounded-full border-4 border-surface-container-highest overflow-hidden shadow-2xl opacity-80 group-hover:opacity-100 transition-opacity">
+<img alt="Italy Flag" data-alt="vibrant high-resolution flag of Italy with its vertical tricolor of green, white, and red in studio lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCmORkECoZcZpths2Z7MPuipmxRbxX__pXVnSCwg0BBs4oK9hUuXoBSnuovSG2De81UXfvy7MITLdrjtSl0HS_q7jVIwpiMicrPYz1tW8EPedG0xSGEhhXCq8qURMUiM4OGxPzkFU9Tgitdu90NZJNu3um2RxL_dgC6rAKimByAaft7kaxGmIVO25XA1IUQ4UwiR3_Io8fneXmi7bGoZ87I89D5JmrYeQhQAuTyhuHA4ySMRgQjLlLigsuwWtHCyk0OnURiI8KQ6cJ-"/>
+</div>
+<span class="font-headline text-lg font-bold tracking-tight">ITALY</span>
+</div>
+<div class="flex items-center gap-4">
+<input class="w-16 h-20 bg-surface-container-lowest border border-outline-variant/20 rounded-xl text-center font-headline text-4xl font-bold focus:ring-2 focus:ring-primary/50 placeholder:text-on-surface-variant/20" placeholder="0" type="number"/>
+<span class="text-on-surface-variant/30 font-headline text-2xl">:</span>
+<input class="w-16 h-20 bg-surface-container-lowest border border-outline-variant/20 rounded-xl text-center font-headline text-4xl font-bold focus:ring-2 focus:ring-primary/50 placeholder:text-on-surface-variant/20" placeholder="0" type="number"/>
+</div>
+<div class="flex flex-col items-center gap-4 w-32 text-center">
+<div class="w-20 h-20 rounded-full border-4 border-surface-container-highest overflow-hidden shadow-2xl opacity-80 group-hover:opacity-100 transition-opacity">
+<img alt="Albania Flag" data-alt="vibrant high-resolution flag of Albania featuring a black double-headed eagle on a red field" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDSMAbFLp5qrJIui1HflWu0z662mzN3pZAX0dq9SkeDj9JeNEKFEx4PKhCGfoMYc109izmxaNUkz_X0MZi6HiN5V4qvPpk0tyulbjn0JVnsnBmzMe71WZYOPvGkoKfayVODEKlaybKYMYbOpbvGeq0Nw9I2uH42hms7DPiOrQLbZa7tZ4vUjgUNyG4p6_iEdwDiqbUJ4geUCRgO5HRvydN0-gQ9SN_GeGRcIW8YnHDTdO77beuNwCJpRag72vfiW-kxkAk6MjMCPpOr"/>
+</div>
+<span class="font-headline text-lg font-bold tracking-tight">ALBANIA</span>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="space-y-2">
+<label class="font-label text-[10px] text-on-surface-variant/60 uppercase tracking-widest pl-1">Goleador (Scorer)</label>
+<div class="relative">
+<select class="w-full bg-surface-container-lowest border border-outline-variant/20 rounded-lg px-4 py-3 font-body text-sm focus:ring-1 focus:ring-primary/30 appearance-none">
+<option disabled="" selected="">Select Player</option>
+<option>G. Scamacca</option>
+<option>A. Broja</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-2.5 text-on-surface-variant/40 text-sm pointer-events-none">expand_more</span>
+</div>
+</div>
+<div class="space-y-2">
+<label class="font-label text-[10px] text-on-surface-variant/60 uppercase tracking-widest pl-1">Asistente (Assist)</label>
+<div class="relative">
+<select class="w-full bg-surface-container-lowest border border-outline-variant/20 rounded-lg px-4 py-3 font-body text-sm focus:ring-1 focus:ring-primary/30 appearance-none">
+<option disabled="" selected="">Select Player</option>
+<option>F. Chiesa</option>
+<option>K. Asllani</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-2.5 text-on-surface-variant/40 text-sm pointer-events-none">expand_more</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Sticky Footer CTA -->
+<div class="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 w-full max-w-md px-6">
+<button class="w-full gradient-cta text-on-primary py-5 rounded-full font-headline text-lg font-bold tracking-widest uppercase shadow-2xl shadow-primary/20 hover:scale-105 transition-transform flex items-center justify-center gap-3">
+                Guardar Predicciones
+                <span class="material-symbols-outlined" data-weight="fill">save</span>
+</button>
+</div>
+</main>
+<!-- Footer -->
+<footer class="lg:ml-64 w-full py-12 px-8 bg-[#131313] bg-[#1c1c1c] font-['Plus_Jakarta_Sans'] text-xs uppercase tracking-widest">
+<div class="w-full flex flex-col md:flex-row justify-between items-center gap-4">
+<div class="text-[#FFF9EF] font-bold">THE PODIUM</div>
+<div class="flex gap-8">
+<a class="text-[#FFF9EF]/40 hover:text-[#FFF9EF] transition-colors" href="#">Tournament Stats</a>
+<a class="text-[#FFF9EF]/40 hover:text-[#FFF9EF] transition-colors" href="#">Privacy Policy</a>
+<a class="text-[#FFF9EF]/40 hover:text-[#FFF9EF] transition-colors" href="#">Global Rankings</a>
+</div>
+<p class="text-[#FFF9EF]/40">© 2024 The Pitch &amp; The Podium. All Rights Reserved.</p>
+</div>
+</footer>
+</body></html>

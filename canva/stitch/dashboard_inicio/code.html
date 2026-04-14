@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&amp;family=Plus+Jakarta+Sans:wght@300..800&amp;family=Lexend:wght@300..700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "background": "#131313",
+                        "inverse-primary": "#1b6d24",
+                        "surface": "#131313",
+                        "on-tertiary-fixed-variant": "#454747",
+                        "primary-fixed": "#a3f69c",
+                        "surface-container-lowest": "#0e0e0e",
+                        "error": "#ffb4ab",
+                        "secondary-fixed-dim": "#e9c400",
+                        "primary-container": "#004e10",
+                        "surface-container": "#201f1f",
+                        "on-secondary-container": "#725f00",
+                        "surface-variant": "#353534",
+                        "error-container": "#93000a",
+                        "on-surface": "#e5e2e1",
+                        "surface-bright": "#393939",
+                        "on-primary": "#003909",
+                        "surface-dim": "#131313",
+                        "tertiary-container": "#414343",
+                        "on-secondary-fixed": "#221b00",
+                        "on-tertiary-container": "#afafb0",
+                        "inverse-on-surface": "#313030",
+                        "surface-tint": "#88d982",
+                        "on-background": "#e5e2e1",
+                        "on-surface-variant": "#bfc9bf",
+                        "on-error": "#690005",
+                        "surface-container-high": "#2a2a2a",
+                        "primary": "#88d982",
+                        "primary-fixed-dim": "#88d982",
+                        "inverse-surface": "#e5e2e1",
+                        "secondary": "#fff9ef",
+                        "on-primary-container": "#71c16d",
+                        "on-primary-fixed-variant": "#005312",
+                        "outline-variant": "#404942",
+                        "surface-container-highest": "#353534",
+                        "tertiary": "#c6c6c7",
+                        "on-tertiary": "#2f3131",
+                        "secondary-container": "#ffdb3c",
+                        "on-secondary": "#3a3000",
+                        "surface-container-low": "#1c1b1b",
+                        "on-primary-fixed": "#002204",
+                        "secondary-fixed": "#ffe16d",
+                        "on-tertiary-fixed": "#1a1c1c",
+                        "on-secondary-fixed-variant": "#544600",
+                        "tertiary-fixed": "#e2e2e2",
+                        "tertiary-fixed-dim": "#c6c6c7",
+                        "outline": "#8a938a",
+                        "on-error-container": "#ffdad6"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "headline": ["Space Grotesk"],
+                        "body": ["Plus Jakarta Sans"],
+                        "label": ["Lexend"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-card {
+            background: rgba(53, 53, 52, 0.4);
+            backdrop-filter: blur(16px);
+        }
+        .text-glow {
+            text-shadow: 0 0 15px rgba(136, 217, 130, 0.3);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body selection:bg-primary selection:text-on-primary">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 flex justify-between items-center px-6 h-20 w-full no-border bg-[#131313] shadow-[0_4px_30px_rgba(136,217,130,0.06)] font-['Space_Grotesk'] tracking-tight">
+<div class="text-2xl font-bold tracking-tighter text-[#FFF9EF] dark:text-[#FFF9EF]">THE PODIUM</div>
+<div class="hidden md:flex items-center gap-8">
+<a class="text-[#88D982] font-bold border-b-2 border-[#88D982] transition-colors duration-300" href="#">Dashboard</a>
+<a class="text-[#FFF9EF]/60 font-medium hover:text-[#88D982] transition-colors duration-300" href="#">Predictions</a>
+<a class="text-[#FFF9EF]/60 font-medium hover:text-[#88D982] transition-colors duration-300" href="#">Leaderboard</a>
+<a class="text-[#FFF9EF]/60 font-medium hover:text-[#88D982] transition-colors duration-300" href="#">Rules</a>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-[#FFF9EF]/60 hover:text-[#88D982] scale-95 transition-transform">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="p-2 text-[#FFF9EF]/60 hover:text-[#88D982] scale-95 transition-transform">
+<span class="material-symbols-outlined" data-icon="emoji_events">emoji_events</span>
+</button>
+<div class="w-10 h-10 rounded-full bg-surface-container-highest overflow-hidden border border-outline-variant/15">
+<img alt="User profile with total points display" data-alt="close-up portrait of a cheerful young man with short dark hair and a friendly smile, neutral background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAwSNcMQzVQsMqYqmDAziCOSNYHGWics7Q7Kveq-V1AQL9IWGQdG2IHK8iyIGrn2vGHWoYHRYN5QBgm9qSDAPlUF9ctw9kx6dtI93_YfAej-0tjZN9vLpdYeboIrKMAAv91K23IBthlpG2U3Hfb9HTAvKoN76U19MD0Y66FA1oTUsxgJg8AYqfmOeGDFz33is3yk7OIH00hsjX2AHJB9JegS5mLpMeOMY4-s9keuT0dRp8t1smm7OXfq-ADzx_wOwLmhA6UCupBJap_"/>
+</div>
+</div>
+</nav>
+<!-- SideNavBar (Desktop Only) -->
+<aside class="hidden lg:flex flex-col fixed left-0 top-0 h-full py-8 h-screen w-64 border-r-0 bg-[#131313] z-40 mt-20 font-['Plus_Jakarta_Sans'] text-sm">
+<div class="px-6 mb-10">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[#FFDB3C] text-3xl" data-icon="emoji_events" style="font-variation-settings: 'FILL' 1;">emoji_events</span>
+<div>
+<h2 class="text-[#FFDB3C] font-['Space_Grotesk'] font-black uppercase tracking-tighter">World Cup Arena</h2>
+<p class="text-on-surface-variant text-[10px] uppercase tracking-widest">Elite Betting League</p>
+</div>
+</div>
+</div>
+<nav class="flex-1 px-4 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-[#88D982]/20 to-transparent text-[#88D982] border-l-4 border-[#88D982] transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span>Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-[#FFF9EF]/70 hover:bg-[#1c1c1c] hover:text-[#88D982] transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="sports_soccer">sports_soccer</span>
+<span>Predictions</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-[#FFF9EF]/70 hover:bg-[#1c1c1c] hover:text-[#88D982] transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="leaderboard">leaderboard</span>
+<span>Leaderboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-[#FFF9EF]/70 hover:bg-[#1c1c1c] hover:text-[#88D982] transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="gavel">gavel</span>
+<span>Rules</span>
+</a>
+</nav>
+<div class="px-4 mt-auto space-y-1">
+<button class="w-full py-3 mb-4 rounded-full bg-gradient-to-br from-primary to-primary-container text-on-primary font-bold uppercase tracking-wider text-xs shadow-lg shadow-primary/10">
+                Place Bet
+            </button>
+<a class="flex items-center gap-3 px-4 py-3 text-[#FFF9EF]/70 hover:bg-[#1c1c1c] hover:text-[#88D982] transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span>Settings</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-[#FFF9EF]/70 hover:bg-[#1c1c1c] hover:text-[#88D982] transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+<span>Support</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="lg:ml-64 pt-28 pb-12 px-6 md:px-10 max-w-7xl mx-auto">
+<!-- Welcome Header -->
+<header class="mb-10">
+<h1 class="font-headline text-5xl md:text-6xl font-bold tracking-tighter text-on-surface">¡Hola, Diego!</h1>
+<p class="font-label text-primary uppercase tracking-[0.3em] text-sm mt-2">Bienvenido a la Arena Digital</p>
+</header>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+<!-- Points Card -->
+<div class="md:col-span-5 bg-surface-container-low rounded-full p-8 relative overflow-hidden flex flex-col justify-between min-h-[320px]">
+<div class="absolute -top-10 -right-10 opacity-5 font-headline text-[180px] leading-none select-none">250</div>
+<div>
+<h3 class="font-label text-on-surface-variant uppercase tracking-widest text-xs mb-4">Puntos Totales</h3>
+<div class="flex items-baseline gap-2">
+<span class="font-headline text-8xl font-black text-glow text-primary">250</span>
+<span class="font-headline text-2xl text-on-surface-variant/50">PTS</span>
+</div>
+</div>
+<div class="mt-auto flex items-center gap-4">
+<div class="bg-secondary-container text-on-secondary-container px-4 py-2 rounded-full font-headline font-bold text-lg">
+                        #3 Rank
+                    </div>
+<p class="text-on-surface-variant text-sm font-label uppercase">Entre tus amigos</p>
+</div>
+</div>
+<!-- Next Match Card -->
+<div class="md:col-span-7 bg-surface-container-high rounded-full p-8 relative overflow-hidden flex flex-col justify-center border border-outline-variant/5">
+<div class="absolute top-6 right-8">
+<div class="bg-error/20 text-error flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest animate-pulse">
+<span class="w-1.5 h-1.5 rounded-full bg-error"></span>
+                        Próximo Partido
+                    </div>
+</div>
+<div class="flex items-center justify-between gap-4 mt-8">
+<!-- Home Team -->
+<div class="flex flex-col items-center flex-1 text-center">
+<div class="w-20 h-20 bg-surface-container-highest rounded-full flex items-center justify-center mb-3">
+<span class="text-4xl">🇦🇷</span>
+</div>
+<span class="font-headline font-bold text-xl tracking-tight">ARGENTINA</span>
+</div>
+<div class="flex flex-col items-center">
+<span class="font-headline text-4xl text-on-surface-variant/20 font-black">VS</span>
+</div>
+<!-- Away Team -->
+<div class="flex flex-col items-center flex-1 text-center">
+<div class="w-20 h-20 bg-surface-container-highest rounded-full flex items-center justify-center mb-3">
+<span class="text-4xl">🇫🇷</span>
+</div>
+<span class="font-headline font-bold text-xl tracking-tight">FRANCE</span>
+</div>
+</div>
+<div class="mt-8 flex justify-center gap-6">
+<div class="text-center">
+<div class="font-headline text-3xl font-bold">18</div>
+<div class="text-[10px] uppercase tracking-widest text-on-surface-variant">Hrs</div>
+</div>
+<div class="text-center">
+<div class="font-headline text-3xl font-bold">42</div>
+<div class="text-[10px] uppercase tracking-widest text-on-surface-variant">Min</div>
+</div>
+<div class="text-center">
+<div class="font-headline text-3xl font-bold">05</div>
+<div class="text-[10px] uppercase tracking-widest text-on-surface-variant">Seg</div>
+</div>
+</div>
+</div>
+<!-- Friends Leaderboard -->
+<div class="md:col-span-12 bg-surface-container-low rounded-full p-8">
+<div class="flex justify-between items-end mb-8 px-4">
+<div>
+<h3 class="font-headline text-2xl font-bold tracking-tight">Top 5 Amigos</h3>
+<p class="text-on-surface-variant text-xs uppercase tracking-widest font-label">Clasificación en tiempo real</p>
+</div>
+<a class="text-primary font-label text-xs uppercase tracking-widest hover:underline transition-all" href="#">Ver todos</a>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead>
+<tr class="text-on-surface-variant text-[10px] uppercase tracking-[0.2em] font-label border-none">
+<th class="pb-4 px-4">Posición</th>
+<th class="pb-4 px-4">Usuario</th>
+<th class="pb-4 px-4">Pronósticos</th>
+<th class="pb-4 px-4 text-right">Puntos</th>
+</tr>
+</thead>
+<tbody class="space-y-2">
+<!-- Friend 1 -->
+<tr class="group hover:bg-surface-container-highest transition-colors rounded-full">
+<td class="py-4 px-4 relative">
+<div class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-secondary-container"></div>
+<span class="font-headline font-bold text-lg text-secondary-container">01</span>
+</td>
+<td class="py-4 px-4">
+<div class="flex items-center gap-3">
+<img alt="Friend 1" class="w-8 h-8 rounded-full" data-alt="avatar of a young person with light skin and blond hair in a minimalist digital illustration style" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAB7yAJT910P3WUFpSb0YnAoPWEo7-DeFySXQYJ8ygmfdXzEjAqJ5G7lMbFKd2JK1jqnyJT4mIZD0w9oshZN4u3kQQPyr3iY1k84jCTZ3KOb0gYXiiIJBrStb4CvSMcTnIFgsiJt7C73T2_a0SHomd1bNS37w2VvJ4dG2mEJQ-uAv4PHCXx3buVMH9TdIVS-Vh--XcRov9KCtCMz1zzboc4XCycqcF4dMQ_ZKnzh8ddf2WaDW7wJY3Sj8M4IhPzB1KRrWDfzrFaHlc9"/>
+<span class="font-bold">Santi_WC</span>
+</div>
+</td>
+<td class="py-4 px-4">
+<span class="text-xs text-on-surface-variant">12 / 15 acertados</span>
+</td>
+<td class="py-4 px-4 text-right">
+<span class="font-headline font-bold text-primary">312</span>
+</td>
+</tr>
+<!-- Friend 2 -->
+<tr class="group hover:bg-surface-container-highest transition-colors">
+<td class="py-4 px-4 relative">
+<div class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-secondary-container"></div>
+<span class="font-headline font-bold text-lg text-secondary-container">02</span>
+</td>
+<td class="py-4 px-4">
+<div class="flex items-center gap-3">
+<img alt="Friend 2" class="w-8 h-8 rounded-full" data-alt="avatar of a young woman with curly dark hair and glasses in a clean modern vector style" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA25MqwHjaA_ZJZzMtVVxJNFjUroao1Gjv7nt1u462ZnH_Z9gIHlokZGaWLQh1ND612sYJNfYfFgwLfAr8cdBYZH6i7BngudrbfqtZjDxkdlxZDRCQoqgTPwkFmUxquuez895v2uN1F6cqz7yWLbBJA4XvaZm4LyrQsVXGA8t00ZNmkYrtmpsR-pNr302CNngVmKmx9Q59-yCzQ9bu4FJ8C_5CBL7rbBsXxMhLytCEqm1cdbiK3nXEtPjaNaVbvpxbxtgTC8OFr7Bn9"/>
+<span class="font-bold">MatiGomez</span>
+</div>
+</td>
+<td class="py-4 px-4">
+<span class="text-xs text-on-surface-variant">10 / 15 acertados</span>
+</td>
+<td class="py-4 px-4 text-right">
+<span class="font-headline font-bold text-primary">285</span>
+</td>
+</tr>
+<!-- Friend 3 (Current User) -->
+<tr class="bg-primary/5 group border-y border-primary/10">
+<td class="py-4 px-4 relative">
+<div class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-secondary-container"></div>
+<span class="font-headline font-bold text-lg text-secondary-container">03</span>
+</td>
+<td class="py-4 px-4">
+<div class="flex items-center gap-3">
+<img alt="Me" class="w-8 h-8 rounded-full ring-2 ring-primary" data-alt="close-up portrait of a cheerful young man with short dark hair and a friendly smile, neutral background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDOmRCLHRN8kt_SOSiA_Xf30TvfgyTrpPEiWYxA8wZ9Tt_B0bDPAougqHNJHby4kzXmFR4K-F4Kv4wEnzt5wK9-mYTkw46XjlNXaT6sHDk9Sdx0SEgzCE4vkHnlVpqltwhkF5cOHI6vOODgYf1C7YjBoO0WSRe8kgeIrSvNJVr-0ZnP9TPXvjKi2uWtw5eNOkkt_r78BVp0BUThHR9zA1-vFZIG-vuu3lmEsPEc-g51An2n6Lvv3gHCEvltIQ0-oBJcDRaktm_ncZJo"/>
+<span class="font-bold text-primary">Tú (Diego)</span>
+</div>
+</td>
+<td class="py-4 px-4">
+<span class="text-xs text-primary/70">9 / 15 acertados</span>
+</td>
+<td class="py-4 px-4 text-right">
+<span class="font-headline font-bold text-primary">250</span>
+</td>
+</tr>
+<!-- Friend 4 -->
+<tr class="group hover:bg-surface-container-highest transition-colors">
+<td class="py-4 px-4">
+<span class="font-headline font-bold text-lg text-on-surface-variant/40 ml-1">04</span>
+</td>
+<td class="py-4 px-4">
+<div class="flex items-center gap-3">
+<img alt="Friend 4" class="w-8 h-8 rounded-full opacity-60" data-alt="stylized vector avatar of a man with a beard and baseball cap on a soft background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAOcqukoyTWEgVnn0zK60jzpp7a568H4GOPpEHX7AQ-IqmqkYSRxbtpMY9MwGVwzP2w-gpALBeL_ICXZFzz_Ff0-ZCYL7QTXd6zbdYIWMiOGFlf1kj0dfPys7GciLLVYfyGdJrTuvdtsVHULSTBWQVqiiaqFoU7sakJgQSl-5yF2NyFfdtTz_FGJpQ5gxP1gH5CX91NfU8RvpPjhoqUbOHstps9EwfSyQsUkDOV6IuGJTfgYYs9TjaBwKhRtAagm-cGdPYziupb4uy-"/>
+<span class="font-bold text-on-surface-variant/80">Lau_Ramos</span>
+</div>
+</td>
+<td class="py-4 px-4">
+<span class="text-xs text-on-surface-variant">8 / 15 acertados</span>
+</td>
+<td class="py-4 px-4 text-right">
+<span class="font-headline font-bold text-on-surface-variant/80">210</span>
+</td>
+</tr>
+<!-- Friend 5 -->
+<tr class="group hover:bg-surface-container-highest transition-colors">
+<td class="py-4 px-4">
+<span class="font-headline font-bold text-lg text-on-surface-variant/40 ml-1">05</span>
+</td>
+<td class="py-4 px-4">
+<div class="flex items-center gap-3">
+<img alt="Friend 5" class="w-8 h-8 rounded-full opacity-60" data-alt="digital avatar illustration of a young person with short dark hair and a bright expression" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAHkNuI_Q3HdCBNM1TZZt1tRLWOX-WSuTzVAngkVsKKDpuqQbe869hvCuCaW_jlEBm4IVe8L1YmfVDvndW59v3T9JHTQ8pwvTyfn40vRzYcx7LoHNt32ICD26bhMql1MMHf3qU9aEsvYuHV4UN9btdUnjrY4gEOhb-GVPlFt75kDALsZNLYc0zmV7WxTZ3NDVhKvB5TZKM1-MskXJW8uYwYig258t06Wn7ggnF6THN300ezeL-wRoBtQbngI6JUM6oCPxBb4BGJDhYj"/>
+<span class="font-bold text-on-surface-variant/80">Fran_D</span>
+</div>
+</td>
+<td class="py-4 px-4">
+<span class="text-xs text-on-surface-variant">7 / 15 acertados</span>
+</td>
+<td class="py-4 px-4 text-right">
+<span class="font-headline font-bold text-on-surface-variant/80">198</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="lg:ml-64 w-full py-12 px-8 flex flex-col md:flex-row justify-between items-center gap-4 bg-[#1c1c1c] font-['Plus_Jakarta_Sans'] text-xs uppercase tracking-widest mt-auto">
+<div class="text-[#FFF9EF] font-bold">THE PODIUM</div>
+<div class="flex gap-8">
+<a class="text-[#FFF9EF]/40 hover:text-[#FFF9EF] transition-colors" href="#">Tournament Stats</a>
+<a class="text-[#FFF9EF]/40 hover:text-[#FFF9EF] transition-colors" href="#">Privacy Policy</a>
+<a class="text-[#FFF9EF]/40 hover:text-[#FFF9EF] transition-colors" href="#">Global Rankings</a>
+</div>
+<div class="text-[#FFF9EF]/40 opacity-80">© 2024 The Pitch &amp; The Podium. All Rights Reserved.</div>
+</footer>
+</body></html>
