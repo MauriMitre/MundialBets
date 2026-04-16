@@ -55,12 +55,13 @@ export default async function HistoryPage() {
       .eq('status', 'finished'),
   ])
 
-  const preds = predictions ?? []
-  const predictedMatchIds = new Set(preds.map(p => (p.match as unknown as { id: string }).id))
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const preds: any[] = predictions ?? []
+  const predictedMatchIds = new Set(preds.map(p => p.match?.id as string))
   const missed = (missedMatches ?? []).filter(m => !predictedMatchIds.has(m.id))
 
-  const finished = preds.filter(p => (p.match as unknown as { status: string }).status === 'finished')
-  const pending  = preds.filter(p => (p.match as unknown as { status: string }).status !== 'finished')
+  const finished = preds.filter(p => p.match?.status === 'finished')
+  const pending  = preds.filter(p => p.match?.status !== 'finished')
 
   const totalPoints = finished.reduce((sum, p) => sum + (p.points_earned ?? 0), 0)
   const accuracy = finished.length > 0
