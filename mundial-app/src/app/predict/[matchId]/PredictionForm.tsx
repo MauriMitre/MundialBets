@@ -26,13 +26,16 @@ interface Props {
     predicted_winner: string | null
     predicted_home_score: number | null
     predicted_away_score: number | null
+    predicted_penalty_home_score: number | null
+    predicted_penalty_away_score: number | null
     predictionPlayers?: { player_id: string; event_type: string }[]
   } | null
   readonly: boolean
   userId: string
+  isKnockout: boolean
 }
 
-export default function PredictionForm({ match, players, existing, readonly }: Props) {
+export default function PredictionForm({ match, players, existing, readonly, userId, isKnockout }: Props) {
   const router = useRouter()
   const [pending, startTransition] = useTransition()
 
@@ -51,10 +54,17 @@ export default function PredictionForm({ match, players, existing, readonly }: P
   const [assisters, setAssisters] = useState<string[]>(
     existing?.predictionPlayers?.filter(p => p.event_type === 'assist').map(p => p.player_id) ?? []
   )
+  const [penaltyHome, setPenaltyHome] = useState<string>(
+    existing?.predicted_penalty_home_score?.toString() ?? ''
+  )
+  const [penaltyAway, setPenaltyAway] = useState<string>(
+    existing?.predicted_penalty_away_score?.toString() ?? ''
+  )
 
   const totalGoals = (parseInt(homeScore) || 0) + (parseInt(awayScore) || 0)
 
   const totalScorerGoals = Object.values(scorers).reduce((a, b) => a + b, 0)
+  const totalAssists = assisters.length
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
 
@@ -95,16 +105,35 @@ export default function PredictionForm({ match, players, existing, readonly }: P
     })
   }
 
+  function trimAssisters(maxGoals: number) {
+    setAssisters(prev => prev.slice(0, maxGoals))
+  }
+
+  function syncWinnerFromScore(home: string, away: string) {
+    const h = parseInt(home)
+    const a = parseInt(away)
+    if (isNaN(h) || isNaN(a)) return
+    if (h > a)        setWinner('home')
+    else if (a > h)   setWinner('away')
+    else if (!isKnockout) setWinner('draw')
+    // En knockout, si empatan en tiempo reglamentario no forzamos 'draw':
+    // el usuario elige quién gana (puede ir a penales)
+  }
+
   function handleHomeScoreChange(val: string) {
     setHomeScore(val)
     const newTotal = (parseInt(val) || 0) + (parseInt(awayScore) || 0)
     trimScorers(newTotal)
+    trimAssisters(newTotal)
+    syncWinnerFromScore(val, awayScore)
   }
 
   function handleAwayScoreChange(val: string) {
     setAwayScore(val)
     const newTotal = (parseInt(homeScore) || 0) + (parseInt(val) || 0)
     trimScorers(newTotal)
+    trimAssisters(newTotal)
+    syncWinnerFromScore(homeScore, val)
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -115,14 +144,22 @@ export default function PredictionForm({ match, players, existing, readonly }: P
     startTransition(async () => {
       const supabase = createClient()
 
+      // Penales: solo guardar si el usuario los completó ambos
+      const penaltyHomeVal = penaltyHome !== '' ? parseInt(penaltyHome) : null
+      const penaltyAwayVal = penaltyAway !== '' ? parseInt(penaltyAway) : null
+      const bothPenalties = penaltyHomeVal !== null && penaltyAwayVal !== null
+
       const { data: pred, error: predErr } = await supabase
         .from('predictions')
         .upsert({
           ...(existing?.id ? { id: existing.id } : {}),
+          user_id: userId,
           match_id: match.id,
           predicted_winner: winner,
           predicted_home_score: homeScore !== '' ? parseInt(homeScore) : null,
           predicted_away_score: awayScore !== '' ? parseInt(awayScore) : null,
+          predicted_penalty_home_score: isKnockout && bothPenalties ? penaltyHomeVal : null,
+          predicted_penalty_away_score: isKnockout && bothPenalties ? penaltyAwayVal : null,
         }, { onConflict: 'user_id,match_id' })
         .select()
         .single()
@@ -164,32 +201,62 @@ export default function PredictionForm({ match, players, existing, readonly }: P
     <form onSubmit={handleSubmit} className="space-y-5">
 
       {/* Resultado */}
-      <div className="bg-surface-container-low rounded-xl p-6">
-        <h3 className="font-headline font-bold text-on-surface mb-1 uppercase tracking-wide text-sm">
-          ¿Quién gana?
-        </h3>
-        <div className="grid grid-cols-3 gap-2 mt-3">
-          {[
-            { value: 'home', label: match.homeTeam.name },
-            { value: 'draw', label: 'Empate' },
-            { value: 'away', label: match.awayTeam.name },
-          ].map(opt => (
-            <button
-              key={opt.value}
-              type="button"
-              disabled={readonly}
-              onClick={() => setWinner(opt.value as 'home' | 'away' | 'draw')}
-              className={`py-2.5 px-2 rounded-xl text-xs font-semibold transition-all font-label tracking-wide${
-                winner === opt.value
-                  ? ' bg-primary/15 border-2 border-primary text-primary'
-                  : ' bg-surface-container border border-outline-variant/20 text-on-surface-variant'
-              }`}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
-      </div>
+      {(() => {
+        const scoreLocked = homeScore !== '' && awayScore !== '' && !isKnockout
+        const winnerOptions = isKnockout
+          ? [
+              { value: 'home', label: match.homeTeam.name },
+              { value: 'away', label: match.awayTeam.name },
+            ]
+          : [
+              { value: 'home', label: match.homeTeam.name },
+              { value: 'draw', label: 'Empate' },
+              { value: 'away', label: match.awayTeam.name },
+            ]
+        return (
+          <div className="bg-surface-container-low rounded-xl p-6">
+            <div className="flex items-center justify-between mb-1">
+              <h3 className="font-headline font-bold text-on-surface uppercase tracking-wide text-sm">
+                ¿Quién gana?
+              </h3>
+              {scoreLocked && (
+                <span className="font-label text-[10px] text-on-surface-variant/40 uppercase tracking-wide">
+                  Fijado por el resultado
+                </span>
+              )}
+              {isKnockout && (
+                <span className="font-label text-[10px] text-primary/60 uppercase tracking-wide">
+                  Incluye penales
+                </span>
+              )}
+            </div>
+            <div className={`grid gap-2 mt-3 ${isKnockout ? 'grid-cols-2' : 'grid-cols-3'}`}>
+              {winnerOptions.map(opt => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  disabled={readonly || scoreLocked}
+                  onClick={() => {
+                    const val = opt.value as 'home' | 'away' | 'draw'
+                    setWinner(val)
+                    if (val === 'draw' && homeScore === '' && awayScore === '') {
+                      setHomeScore('0')
+                      setAwayScore('0')
+                    }
+                  }}
+                  className={`py-2.5 px-2 rounded-xl text-xs font-semibold transition-all font-label tracking-wide${
+                    winner === opt.value
+                      ? ' bg-primary/15 border-2 border-primary text-primary'
+                      : ' bg-surface-container border border-outline-variant/20 text-on-surface-variant'
+                  }${scoreLocked ? ' cursor-default' : ''}`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )
+      })()}
 
       {/* Resultado exacto */}
       <div className="bg-surface-container-low rounded-xl p-6">
@@ -279,11 +346,25 @@ export default function PredictionForm({ match, players, existing, readonly }: P
       {/* Asistentes */}
       {players.length > 0 && (
         <div className="bg-surface-container-low rounded-xl p-6">
-          <h3 className="font-headline font-bold text-on-surface mb-1 uppercase tracking-wide text-sm">
-            Asistentes
-          </h3>
-          <p className="font-body text-xs text-on-surface-variant/60 mb-3">
+          <div className="flex items-start justify-between mb-1">
+            <h3 className="font-headline font-bold text-on-surface uppercase tracking-wide text-sm">
+              Asistentes
+            </h3>
+            <span className={`font-label text-xs px-2 py-0.5 rounded-full ${
+              totalAssists >= totalGoals
+                ? 'bg-error/15 text-error'
+                : 'bg-primary/15 text-primary'
+            }`}>
+              {totalAssists}/{totalGoals}
+            </span>
+          </div>
+          <p className="font-body text-xs text-on-surface-variant/60 mb-1">
             Opcional — +1 pt por cada acierto
+          </p>
+          <p className="font-label text-[10px] text-on-surface-variant/40 mb-3 uppercase tracking-wide">
+            {totalGoals === 0
+              ? 'Ingresá un resultado para poder seleccionar asistentes'
+              : `Máximo ${totalGoals} asistencia${totalGoals !== 1 ? 's' : ''} en total según tu resultado`}
           </p>
           <PlayerSelector
             label={match.homeTeam.name}
@@ -291,6 +372,7 @@ export default function PredictionForm({ match, players, existing, readonly }: P
             selected={assisters}
             onToggle={id => togglePlayer(id, assisters, setAssisters)}
             disabled={readonly}
+            maxReached={totalAssists >= totalGoals}
           />
           <div className="mt-3">
             <PlayerSelector
@@ -299,8 +381,55 @@ export default function PredictionForm({ match, players, existing, readonly }: P
               selected={assisters}
               onToggle={id => togglePlayer(id, assisters, setAssisters)}
               disabled={readonly}
+              maxReached={totalAssists >= totalGoals}
             />
           </div>
+        </div>
+      )}
+
+      {/* Penales — solo en fases eliminatorias */}
+      {isKnockout && (
+        <div className="bg-surface-container-low rounded-xl p-6">
+          <h3 className="font-headline font-bold text-on-surface uppercase tracking-wide text-sm mb-1">
+            Resultado de penales
+          </h3>
+          <p className="font-body text-xs text-on-surface-variant/60 mb-3">
+            Opcional — +5 pts si acertás el marcador exacto de la serie
+          </p>
+          <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+            <div className="text-center">
+              <p className="font-label text-xs text-on-surface-variant/60 mb-1">{match.homeTeam.name}</p>
+              <input
+                type="number"
+                min={0}
+                max={20}
+                disabled={readonly}
+                value={penaltyHome}
+                onChange={e => setPenaltyHome(e.target.value)}
+                className="w-full bg-surface-container-lowest border border-outline-variant/20 rounded-lg text-center font-headline text-3xl font-bold text-primary focus:ring-2 focus:ring-primary/30 outline-none py-2 disabled:opacity-50"
+                placeholder="0"
+              />
+            </div>
+            <span className="font-headline font-bold text-xl text-on-surface-variant/30">:</span>
+            <div className="text-center">
+              <p className="font-label text-xs text-on-surface-variant/60 mb-1">{match.awayTeam.name}</p>
+              <input
+                type="number"
+                min={0}
+                max={20}
+                disabled={readonly}
+                value={penaltyAway}
+                onChange={e => setPenaltyAway(e.target.value)}
+                className="w-full bg-surface-container-lowest border border-outline-variant/20 rounded-lg text-center font-headline text-3xl font-bold text-primary focus:ring-2 focus:ring-primary/30 outline-none py-2 disabled:opacity-50"
+                placeholder="0"
+              />
+            </div>
+          </div>
+          {(penaltyHome !== '' || penaltyAway !== '') && (penaltyHome === '' || penaltyAway === '') && (
+            <p className="font-label text-xs text-error/70 mt-2">
+              Completá ambos valores o dejá los dos vacíos
+            </p>
+          )}
         </div>
       )}
 
@@ -329,12 +458,14 @@ function PlayerSelector({
   selected,
   onToggle,
   disabled,
+  maxReached = false,
 }: {
   label: string
   players: Player[]
   selected: string[]
   onToggle: (id: string) => void
   disabled: boolean
+  maxReached?: boolean
 }) {
   if (players.length === 0) return null
   return (
@@ -345,13 +476,14 @@ function PlayerSelector({
       <div className="flex flex-wrap gap-2">
         {players.map(p => {
           const isSelected = selected.includes(p.id)
+          const isDisabled = disabled || (maxReached && !isSelected)
           return (
             <button
               key={p.id}
               type="button"
-              disabled={disabled}
+              disabled={isDisabled}
               onClick={() => onToggle(p.id)}
-              className={`text-xs px-2.5 py-1 rounded-full transition-all font-label disabled:opacity-50${
+              className={`text-xs px-2.5 py-1 rounded-full transition-all font-label disabled:opacity-30${
                 isSelected
                   ? ' bg-primary/15 border border-primary text-primary'
                   : ' bg-surface-container border border-outline-variant/10 text-on-surface-variant/70 hover:border-outline-variant/40'

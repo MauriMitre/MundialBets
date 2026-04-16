@@ -1,11 +1,50 @@
-import { format, isToday, isTomorrow, isPast } from 'date-fns'
-import { es } from 'date-fns/locale'
+import { isPast } from 'date-fns'
+
+const TZ = 'America/Argentina/Buenos_Aires'
+
+function argParts(date: Date) {
+  const parts = new Intl.DateTimeFormat('es-AR', {
+    timeZone: TZ,
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', hour12: false,
+  }).formatToParts(date)
+  const get = (type: string) => parts.find(p => p.type === type)?.value ?? ''
+  return {
+    dateKey: `${get('year')}-${get('month')}-${get('day')}`,
+    time: `${get('hour')}:${get('minute')}`,
+    day: parseInt(get('day')),
+    month: new Intl.DateTimeFormat('es-AR', { timeZone: TZ, month: 'short' }).format(date),
+  }
+}
 
 export function formatMatchDate(dateStr: string): string {
-  const date = new Date(dateStr)
-  if (isToday(date))    return `Hoy ${format(date, 'HH:mm')}`
-  if (isTomorrow(date)) return `Mañana ${format(date, 'HH:mm')}`
-  return format(date, "d MMM HH:mm", { locale: es })
+  const date     = new Date(dateStr)
+  const now      = new Date()
+  const tomorrow = new Date(now.getTime() + 86400000)
+
+  const match    = argParts(date)
+  const today    = argParts(now)
+  const tom      = argParts(tomorrow)
+
+  if (match.dateKey === today.dateKey)   return `Hoy ${match.time}`
+  if (match.dateKey === tom.dateKey)     return `Mañana ${match.time}`
+  return `${match.day} ${match.month} ${match.time}`
+}
+
+/** Convierte un valor de input datetime-local (ingresado en hora Argentina) a ISO UTC */
+export function argentinaInputToUTC(dtLocal: string): string {
+  return new Date(`${dtLocal}-03:00`).toISOString()
+}
+
+/** Convierte una fecha ISO UTC al formato que espera un input datetime-local, en hora Argentina */
+export function toDatetimeLocalArg(iso: string): string {
+  const parts = new Intl.DateTimeFormat('es-AR', {
+    timeZone: TZ,
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', hour12: false,
+  }).formatToParts(new Date(iso))
+  const get = (type: string) => parts.find(p => p.type === type)?.value ?? ''
+  return `${get('year')}-${get('month')}-${get('day')}T${get('hour')}:${get('minute')}`
 }
 
 export function isBettingOpen(closesAt: string | null): boolean {

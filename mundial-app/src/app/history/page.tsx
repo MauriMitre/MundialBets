@@ -20,6 +20,8 @@ export default async function HistoryPage() {
         predicted_winner,
         predicted_home_score,
         predicted_away_score,
+        predicted_penalty_home_score,
+        predicted_penalty_away_score,
         points_earned,
         is_scored,
         match:match_id (
@@ -30,6 +32,8 @@ export default async function HistoryPage() {
           status,
           home_score,
           away_score,
+          penalty_home_score,
+          penalty_away_score,
           homeTeam:home_team_id ( id, name, code ),
           awayTeam:away_team_id ( id, name, code )
         ),
@@ -102,8 +106,11 @@ export default async function HistoryPage() {
                   predictedHomeScore={p.predicted_home_score}
                   predictedAwayScore={p.predicted_away_score}
                   predictedWinner={p.predicted_winner}
+                  predictedPenaltyHomeScore={(p as any).predicted_penalty_home_score ?? null}
+                  predictedPenaltyAwayScore={(p as any).predicted_penalty_away_score ?? null}
                   pointsEarned={null}
                   isScored={false}
+                  predictionPlayers={(p.predictionPlayers ?? []) as any}
                   pending
                 />
               )
@@ -128,8 +135,11 @@ export default async function HistoryPage() {
                   predictedHomeScore={p.predicted_home_score}
                   predictedAwayScore={p.predicted_away_score}
                   predictedWinner={p.predicted_winner}
+                  predictedPenaltyHomeScore={(p as any).predicted_penalty_home_score ?? null}
+                  predictedPenaltyAwayScore={(p as any).predicted_penalty_away_score ?? null}
                   pointsEarned={p.points_earned}
                   isScored={p.is_scored}
+                  predictionPlayers={(p.predictionPlayers ?? []) as any}
                 />
               )
             })}
@@ -186,13 +196,21 @@ function StatBox({ label, value, highlight }: { label: string; value: string | n
   )
 }
 
+interface PredPlayer {
+  event_type: string
+  player: { name: string; shirt_number: number | null } | null
+}
+
 interface PredictionRowProps {
   match: Record<string, unknown>
   predictedHomeScore: number | null
   predictedAwayScore: number | null
   predictedWinner: string | null
+  predictedPenaltyHomeScore?: number | null
+  predictedPenaltyAwayScore?: number | null
   pointsEarned: number | null
   isScored: boolean
+  predictionPlayers?: PredPlayer[]
   pending?: boolean
   missed?: boolean
 }
@@ -202,8 +220,11 @@ function PredictionRow({
   predictedHomeScore,
   predictedAwayScore,
   predictedWinner,
+  predictedPenaltyHomeScore,
+  predictedPenaltyAwayScore,
   pointsEarned,
   isScored,
+  predictionPlayers = [],
   pending,
   missed,
 }: PredictionRowProps) {
@@ -211,10 +232,12 @@ function PredictionRow({
   const awayTeam = match.awayTeam as { name: string; code: string }
   const homeScore = match.home_score as number | null
   const awayScore = match.away_score as number | null
+  const penaltyHomeScore = match.penalty_home_score as number | null
+  const penaltyAwayScore = match.penalty_away_score as number | null
   const stage = match.stage as string
   const matchDate = match.match_date as string
 
-  // Resultado exacto: ambos scores deben ser non-null y coincidir
+  // Resultado exacto (90')
   const gotExact =
     !missed &&
     !pending &&
@@ -231,74 +254,138 @@ function PredictionRow({
     !gotExact &&
     (pointsEarned ?? 0) > 0
 
+  // Penales exactos
+  const gotPenalties =
+    !missed &&
+    !pending &&
+    penaltyHomeScore !== null &&
+    penaltyAwayScore !== null &&
+    predictedPenaltyHomeScore !== null &&
+    predictedPenaltyAwayScore !== null &&
+    predictedPenaltyHomeScore === penaltyHomeScore &&
+    predictedPenaltyAwayScore === penaltyAwayScore
+
+  const hasPenaltyPrediction =
+    predictedPenaltyHomeScore !== null && predictedPenaltyAwayScore !== null
+
+  const scorers  = predictionPlayers.filter(p => p.event_type === 'goal'   && p.player)
+  const assisters = predictionPlayers.filter(p => p.event_type === 'assist' && p.player)
+
   return (
-    <div className={`card p-4 flex items-center gap-4 ${missed ? 'opacity-40' : ''}`}>
+    <div className={`card p-4 ${missed ? 'opacity-40' : ''}`}>
 
-      {/* Banderas y equipos */}
-      <div className="flex items-center gap-2 flex-1 min-w-0">
-        <TeamFlag code={homeTeam.code} />
-        <span className="font-headline font-bold text-sm text-on-surface truncate hidden sm:block">
-          {homeTeam.name}
-        </span>
-        <span className="font-headline font-bold text-xs text-on-surface-variant/30 mx-1">vs</span>
-        <span className="font-headline font-bold text-sm text-on-surface truncate hidden sm:block">
-          {awayTeam.name}
-        </span>
-        <TeamFlag code={awayTeam.code} />
-      </div>
+      {/* Fila principal */}
+      <div className="flex items-center gap-4">
 
-      {/* Resultado real */}
-      <div className="text-center shrink-0 w-16">
-        {homeScore !== null ? (
-          <p className="font-headline font-bold text-base text-on-surface">
-            {homeScore} - {awayScore}
-          </p>
-        ) : (
-          <p className="text-on-surface-variant/30 text-xs">
-            {formatMatchDate(matchDate)}
-          </p>
-        )}
-        <p className="text-[9px] text-on-surface-variant/40 uppercase tracking-wider">
-          {homeScore !== null ? 'Final' : STAGE_LABELS[stage as keyof typeof STAGE_LABELS]?.split(' ')[0]}
-        </p>
-      </div>
-
-      {/* Predicción */}
-      <div className="text-center shrink-0 w-16">
-        {missed ? (
-          <p className="text-on-surface-variant/40 text-xs">—</p>
-        ) : predictedHomeScore !== null ? (
-          <p className={`font-headline font-bold text-base ${
-            gotExact ? 'text-primary' : gotWinner ? 'text-secondary-container' : 'text-on-surface-variant'
-          }`}>
-            {predictedHomeScore} - {predictedAwayScore}
-          </p>
-        ) : predictedWinner ? (
-          <p className="text-on-surface-variant text-xs capitalize">{predictedWinner}</p>
-        ) : (
-          <p className="text-on-surface-variant/40 text-xs">—</p>
-        )}
-        <p className="text-[9px] text-on-surface-variant/40 uppercase tracking-wider">
-          {missed ? 'sin apuesta' : 'tu apuesta'}
-        </p>
-      </div>
-
-      {/* Puntos */}
-      <div className="shrink-0 w-14 text-right">
-        {pending ? (
-          <span className="badge badge-gray">pendiente</span>
-        ) : missed ? (
-          <span className="font-headline font-bold text-on-surface-variant/30 text-base">0</span>
-        ) : isScored ? (
-          <span className={`font-headline font-bold text-xl ${
-            (pointsEarned ?? 0) > 0 ? 'text-primary' : 'text-on-surface-variant/40'
-          }`}>
-            +{pointsEarned}
+        {/* Banderas y equipos */}
+        <div className="flex items-center gap-2 flex-1 min-w-0">
+          <TeamFlag code={homeTeam.code} />
+          <span className="font-headline font-bold text-sm text-on-surface truncate hidden sm:block">
+            {homeTeam.name}
           </span>
-        ) : (
-          <span className="badge badge-gray">sin calcular</span>
-        )}
+          <span className="font-headline font-bold text-xs text-on-surface-variant/30 mx-1">vs</span>
+          <span className="font-headline font-bold text-sm text-on-surface truncate hidden sm:block">
+            {awayTeam.name}
+          </span>
+          <TeamFlag code={awayTeam.code} />
+        </div>
+
+        {/* Resultado real */}
+        <div className="text-center shrink-0 w-16">
+          {homeScore !== null ? (
+            <>
+              <p className="font-headline font-bold text-base text-on-surface">
+                {homeScore} - {awayScore}
+              </p>
+              {penaltyHomeScore !== null && (
+                <p className="text-[9px] text-on-surface-variant/50">
+                  pen {penaltyHomeScore}-{penaltyAwayScore}
+                </p>
+              )}
+            </>
+          ) : (
+            <p className="text-on-surface-variant/30 text-xs">
+              {formatMatchDate(matchDate)}
+            </p>
+          )}
+          <p className="text-[9px] text-on-surface-variant/40 uppercase tracking-wider">
+            {homeScore !== null ? 'Final' : STAGE_LABELS[stage as keyof typeof STAGE_LABELS]?.split(' ')[0]}
+          </p>
+        </div>
+
+        {/* Predicción */}
+        <div className="text-center shrink-0 w-16">
+          {missed ? (
+            <p className="text-on-surface-variant/40 text-xs">—</p>
+          ) : predictedHomeScore !== null ? (
+            <>
+              <p className={`font-headline font-bold text-base ${
+                gotExact ? 'text-primary' : gotWinner ? 'text-secondary-container' : 'text-on-surface-variant'
+              }`}>
+                {predictedHomeScore} - {predictedAwayScore}
+              </p>
+              {hasPenaltyPrediction && (
+                <p className={`text-[9px] ${gotPenalties ? 'text-primary' : 'text-on-surface-variant/50'}`}>
+                  pen {predictedPenaltyHomeScore}-{predictedPenaltyAwayScore}
+                </p>
+              )}
+            </>
+          ) : predictedWinner ? (
+            <p className="text-on-surface-variant text-xs capitalize">{predictedWinner}</p>
+          ) : (
+            <p className="text-on-surface-variant/40 text-xs">—</p>
+          )}
+          <p className="text-[9px] text-on-surface-variant/40 uppercase tracking-wider">
+            {missed ? 'sin apuesta' : 'tu apuesta'}
+          </p>
+        </div>
+
+        {/* Puntos */}
+        <div className="shrink-0 w-14 text-right">
+          {pending ? (
+            <span className="badge badge-gray">pendiente</span>
+          ) : missed ? (
+            <span className="font-headline font-bold text-on-surface-variant/30 text-base">0</span>
+          ) : isScored ? (
+            <span className={`font-headline font-bold text-xl ${
+              (pointsEarned ?? 0) > 0 ? 'text-primary' : 'text-on-surface-variant/40'
+            }`}>
+              +{pointsEarned}
+            </span>
+          ) : (
+            <span className="badge badge-gray">sin calcular</span>
+          )}
+        </div>
+
       </div>
+
+      {/* Goleadores y asistentes apostados */}
+      {(scorers.length > 0 || assisters.length > 0) && (
+        <div className="mt-3 pt-3 border-t border-outline-variant/10 flex flex-wrap gap-x-6 gap-y-1.5">
+          {scorers.length > 0 && (
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="text-[10px] text-on-surface-variant/40 uppercase tracking-wider font-label">⚽ Goleadores</span>
+              {scorers.map((p, i) => (
+                <span key={i} className="text-xs text-on-surface-variant/70 font-label">
+                  {p.player!.shirt_number ? `#${p.player!.shirt_number} ` : ''}{p.player!.name}
+                  {i < scorers.length - 1 ? ',' : ''}
+                </span>
+              ))}
+            </div>
+          )}
+          {assisters.length > 0 && (
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="text-[10px] text-on-surface-variant/40 uppercase tracking-wider font-label">🎯 Asistentes</span>
+              {assisters.map((p, i) => (
+                <span key={i} className="text-xs text-on-surface-variant/70 font-label">
+                  {p.player!.shirt_number ? `#${p.player!.shirt_number} ` : ''}{p.player!.name}
+                  {i < assisters.length - 1 ? ',' : ''}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
     </div>
   )

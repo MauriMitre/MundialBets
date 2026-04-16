@@ -27,6 +27,25 @@ export async function updateProfile(formData: FormData) {
   return { success: true }
 }
 
+export async function updateEmail(formData: FormData) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'No autenticado' }
+
+  const newEmail  = (formData.get('new_email')     as string | null)?.trim().toLowerCase()
+  const confirm   = (formData.get('confirm_email')  as string | null)?.trim().toLowerCase()
+
+  if (!newEmail)              return { error: 'Ingresá el nuevo email' }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)) return { error: 'Email inválido' }
+  if (newEmail === user.email) return { error: 'Es el mismo email que ya tenés' }
+  if (newEmail !== confirm)   return { error: 'Los emails no coinciden' }
+
+  const { error } = await supabase.auth.updateUser({ email: newEmail })
+  if (error) return { error: error.message }
+
+  return { success: true }
+}
+
 export async function updatePassword(formData: FormData) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()

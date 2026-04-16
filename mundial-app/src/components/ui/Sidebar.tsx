@@ -68,7 +68,7 @@ export default function Sidebar({ profile }: { profile: Profile | null }) {
           )
         })}
 
-        {profile?.isAdmin && (
+        {(profile as any)?.is_admin && (
           <Link
             href="/admin"
             className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-sm font-body ${

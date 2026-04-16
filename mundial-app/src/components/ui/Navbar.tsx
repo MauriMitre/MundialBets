@@ -56,7 +56,7 @@ export default function Navbar({ profile }: NavbarProps) {
             </Link>
           ))}
 
-          {profile?.isAdmin && (
+          {(profile as any)?.is_admin && (
             <Link
               href="/admin"
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"

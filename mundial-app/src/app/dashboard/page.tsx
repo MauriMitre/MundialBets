@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { flagUrl } from '@/lib/flags'
 import Countdown from '@/components/ui/Countdown'
+import PointsPanel from './PointsPanel'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -25,26 +26,50 @@ export default async function DashboardPage() {
 
   const userPoints = profile?.totalPoints ?? 0
 
-  // 2. Top 5 profiles
-  const { data: topProfilesRaw } = await supabase
+  // 2. All profiles (leaderboard + panel de puntos)
+  const { data: allProfilesRaw } = await supabase
     .from('profiles')
     .select('id, username, display_name, total_points')
     .order('total_points', { ascending: false })
-    .limit(5)
 
-  const topProfiles = (topProfilesRaw ?? []).map((p: Record<string, unknown>) => ({
+  const allProfiles = (allProfilesRaw ?? []).map((p: Record<string, unknown>) => ({
     id: p.id as string,
     username: p.username as string,
     displayName: p.display_name as string | null,
     totalPoints: (p.total_points as number) ?? 0,
   }))
 
-  // 3. Prediction count per user (batch)
-  const topProfileIds = topProfiles.map((p) => p.id)
-  const { data: predCounts } = await supabase
-    .from('predictions')
-    .select('user_id')
-    .in('user_id', topProfileIds.length > 0 ? topProfileIds : [''])
+  const topProfiles = allProfiles.slice(0, 5)
+
+  // 3. Prediction count + puntos por partido (paralelo)
+  const allProfileIds = allProfiles.map(p => p.id)
+  const [{ data: predCounts }, { data: scoredPreds }, { data: matchEvents }] = await Promise.all([
+    supabase
+      .from('predictions')
+      .select('user_id')
+      .in('user_id', allProfileIds.length > 0 ? allProfileIds : ['']),
+    supabase
+      .from('predictions')
+      .select(`
+        id, user_id, match_id,
+        predicted_winner, predicted_home_score, predicted_away_score,
+        predicted_penalty_home_score, predicted_penalty_away_score,
+        points_earned,
+        match:matches(
+          id, match_date, stage, group_name,
+          home_score, away_score, knockout_winner,
+          penalty_home_score, penalty_away_score,
+          homeTeam:home_team_id(name, code),
+          awayTeam:away_team_id(name, code)
+        ),
+        predPlayers:prediction_players(player_id, event_type)
+      `)
+      .eq('is_scored', true)
+      .gt('points_earned', 0),
+    supabase
+      .from('match_events')
+      .select('match_id, player_id, event_type'),
+  ])
 
   const predCountMap: Record<string, number> = {}
   for (const pred of predCounts ?? []) {
@@ -165,7 +190,7 @@ export default async function DashboardPage() {
           )}
         </div>
 
-        {/* Friends Leaderboard */}
+        {/* Friends Leaderboard + Points Panel */}
         <div className="md:col-span-12 bg-surface-container-low rounded-xl p-8">
           <div className="flex justify-between items-end mb-8 px-4">
             <div>
@@ -266,6 +291,16 @@ export default async function DashboardPage() {
               Aún no hay datos de clasificación
             </p>
           )}
+        </div>
+
+        {/* Points Panel */}
+        <div className="md:col-span-12">
+          <PointsPanel
+            profiles={allProfiles}
+            predictions={(scoredPreds ?? []) as any}
+            matchEvents={matchEvents ?? []}
+            currentUserId={user!.id}
+          />
         </div>
 
       </div>

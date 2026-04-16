@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 import PredictionForm from './PredictionForm'
 import { isBettingOpen } from '@/lib/utils'
-import { STAGE_LABELS } from '@/types'
+import { STAGE_LABELS, isKnockout } from '@/types'
 import { flagUrl } from '@/lib/flags'
 
 interface Props {
@@ -107,6 +107,7 @@ export default async function PredictPage({ params }: Props) {
           existing={prediction}
           readonly={isFinished}
           userId={user.id}
+          isKnockout={isKnockout(match.stage)}
         />
       )}
 

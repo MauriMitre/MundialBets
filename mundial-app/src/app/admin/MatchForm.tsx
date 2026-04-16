@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { argentinaInputToUTC } from '@/lib/utils'
 
 const STAGES = [
   { value: 'group',       label: 'Fase de grupos' },
@@ -38,7 +39,7 @@ export default function MatchForm({ teams }: { teams: Team[] }) {
       const { error } = await supabase.from('matches').insert({
         home_team_id: homeTeamId,
         away_team_id: awayTeamId,
-        match_date: form.get('match_date') as string,
+        match_date: argentinaInputToUTC(form.get('match_date') as string),
         stage: form.get('stage') as string,
         group_name: (form.get('group_name') as string) || null,
         venue: (form.get('venue') as string) || null,

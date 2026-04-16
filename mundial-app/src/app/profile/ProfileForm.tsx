@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { updateProfile, updatePassword } from '@/actions/profile'
+import { updateProfile, updatePassword, updateEmail } from '@/actions/profile'
 
 interface Props {
   username: string
@@ -10,10 +10,12 @@ interface Props {
 }
 
 export default function ProfileForm({ username, displayName, email }: Props) {
-  const [pendingName, startName] = useTransition()
-  const [pendingPwd,  startPwd]  = useTransition()
-  const [nameMsg, setNameMsg] = useState<{ text: string; ok: boolean } | null>(null)
-  const [pwdMsg,  setPwdMsg]  = useState<{ text: string; ok: boolean } | null>(null)
+  const [pendingName,  startName]  = useTransition()
+  const [pendingEmail, startEmail] = useTransition()
+  const [pendingPwd,   startPwd]   = useTransition()
+  const [nameMsg,  setNameMsg]  = useState<{ text: string; ok: boolean } | null>(null)
+  const [emailMsg, setEmailMsg] = useState<{ text: string; ok: boolean } | null>(null)
+  const [pwdMsg,   setPwdMsg]   = useState<{ text: string; ok: boolean } | null>(null)
 
   function handleName(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -23,6 +25,22 @@ export default function ProfileForm({ username, displayName, email }: Props) {
       const res = await updateProfile(fd)
       if (res.error) setNameMsg({ text: res.error, ok: false })
       else           setNameMsg({ text: '¡Nombre actualizado!', ok: true })
+    })
+  }
+
+  function handleEmail(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setEmailMsg(null)
+    const form = e.currentTarget
+    const fd = new FormData(form)
+    startEmail(async () => {
+      const res = await updateEmail(fd)
+      if (res.error) {
+        setEmailMsg({ text: res.error, ok: false })
+      } else {
+        setEmailMsg({ text: 'Te enviamos un email de confirmación. El cambio se aplica al hacer clic en el enlace.', ok: true })
+        form.reset()
+      }
     })
   }
 
@@ -93,6 +111,54 @@ export default function ProfileForm({ username, displayName, email }: Props) {
 
           <button type="submit" disabled={pendingName} className="btn-primary">
             {pendingName ? 'Guardando...' : 'Guardar nombre'}
+          </button>
+        </form>
+      </div>
+
+      {/* ── Cambiar email ───────────────────────────────────── */}
+      <div className="card p-6">
+        <h2 className="text-white font-semibold mb-1">Cambiar email</h2>
+        <p className="text-white/40 text-xs mb-5">
+          Email actual: <span className="text-white/70">{email}</span>
+        </p>
+        <form onSubmit={handleEmail} className="space-y-4">
+
+          <div>
+            <label className="block text-xs text-white/50 mb-1">Nuevo email</label>
+            <input
+              name="new_email"
+              type="email"
+              required
+              placeholder="nuevo@email.com"
+              className="input"
+              autoComplete="email"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs text-white/50 mb-1">Confirmar nuevo email</label>
+            <input
+              name="confirm_email"
+              type="email"
+              required
+              placeholder="nuevo@email.com"
+              className="input"
+              autoComplete="email"
+            />
+          </div>
+
+          {emailMsg && (
+            <p className={`text-sm px-3 py-2 rounded-lg border ${
+              emailMsg.ok
+                ? 'text-green-400 bg-green-500/10 border-green-500/20'
+                : 'text-red-400 bg-red-500/10 border-red-500/20'
+            }`}>
+              {emailMsg.text}
+            </p>
+          )}
+
+          <button type="submit" disabled={pendingEmail} className="btn-primary">
+            {pendingEmail ? 'Enviando...' : 'Cambiar email'}
           </button>
         </form>
       </div>

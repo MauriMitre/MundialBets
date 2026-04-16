@@ -34,11 +34,18 @@ export interface Match {
   status: MatchStatus
   homeScore: number | null
   awayScore: number | null
+  knockoutWinner: 'home' | 'away' | null
+  penaltyHomeScore: number | null
+  penaltyAwayScore: number | null
   isScored: boolean
   homeTeam: Team
   awayTeam: Team
   predictions?: Prediction[]
   matchEvents?: MatchEvent[]
+}
+
+export function isKnockout(stage: Stage): boolean {
+  return stage !== 'group'
 }
 
 export interface MatchEvent {
@@ -66,6 +73,8 @@ export interface Prediction {
   predictedWinner: PredictionWinner | null
   predictedHomeScore: number | null
   predictedAwayScore: number | null
+  predictedPenaltyHomeScore: number | null
+  predictedPenaltyAwayScore: number | null
   pointsEarned: number
   isScored: boolean
   predictionPlayers?: PredictionPlayer[]
