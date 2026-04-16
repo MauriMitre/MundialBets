@@ -15,7 +15,11 @@
       "Bash(sed 's/\".*//')",
       "Bash(grep -v '^\"$\\\\|^\\\\s*$')",
       "Bash(npx tsc *)",
-      "WebFetch(domain:mundial-bets.vercel.app)"
+      "WebFetch(domain:mundial-bets.vercel.app)",
+      "Bash(git -C C:/MundialBets status)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
     ]
   }
 }
