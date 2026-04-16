@@ -14,7 +14,8 @@
       "Bash(sed 's/.*className=\"//')",
       "Bash(sed 's/\".*//')",
       "Bash(grep -v '^\"$\\\\|^\\\\s*$')",
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "WebFetch(domain:mundial-bets.vercel.app)"
     ]
   }
 }
