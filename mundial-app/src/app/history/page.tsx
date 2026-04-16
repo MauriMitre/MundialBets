@@ -56,11 +56,11 @@ export default async function HistoryPage() {
   ])
 
   const preds = predictions ?? []
-  const predictedMatchIds = new Set(preds.map(p => (p.match as { id: string }).id))
+  const predictedMatchIds = new Set(preds.map(p => (p.match as unknown as { id: string }).id))
   const missed = (missedMatches ?? []).filter(m => !predictedMatchIds.has(m.id))
 
-  const finished = preds.filter(p => (p.match as { status: string }).status === 'finished')
-  const pending  = preds.filter(p => (p.match as { status: string }).status !== 'finished')
+  const finished = preds.filter(p => (p.match as unknown as { status: string }).status === 'finished')
+  const pending  = preds.filter(p => (p.match as unknown as { status: string }).status !== 'finished')
 
   const totalPoints = finished.reduce((sum, p) => sum + (p.points_earned ?? 0), 0)
   const accuracy = finished.length > 0
@@ -98,7 +98,7 @@ export default async function HistoryPage() {
           </h2>
           <div className="space-y-3">
             {pending.map(p => {
-              const match = p.match as Record<string, unknown>
+              const match = p.match as unknown as Record<string, unknown>
               return (
                 <PredictionRow
                   key={p.id}
@@ -127,7 +127,7 @@ export default async function HistoryPage() {
           </h2>
           <div className="space-y-3">
             {finished.map(p => {
-              const match = p.match as Record<string, unknown>
+              const match = p.match as unknown as Record<string, unknown>
               return (
                 <PredictionRow
                   key={p.id}
@@ -392,7 +392,7 @@ function PredictionRow({
 }
 
 function TeamFlag({ code }: { code: string }) {
-  const url = flagUrl(code, 32)
+  const url = flagUrl(code, 40)
   return (
     <div className="w-7 h-7 rounded-full overflow-hidden bg-surface-container-high shrink-0">
       {url

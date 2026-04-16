@@ -12,7 +12,7 @@ export const revalidate = 60
 type RawMatch = any
 
 function groupMatchesByDate(matches: RawMatch[]): { label: string; date: Date; matches: RawMatch[] }[] {
-  const groups: { label: string; date: Date; matches: Match[] }[] = []
+  const groups: { label: string; date: Date; matches: RawMatch[] }[] = []
   for (const match of matches) {
     const matchDate = parseISO(match.match_date)
     const existing = groups.find(g => isSameDay(g.date, matchDate))
@@ -222,7 +222,7 @@ function MatchCard({ match, predicted }: { match: any; predicted: boolean }) {
 
       {/* Stage label */}
       <p className="font-label text-[10px] tracking-[0.15em] text-on-surface-variant/40 uppercase mb-4">
-        {STAGE_LABELS[match.stage]}
+        {STAGE_LABELS[match.stage as keyof typeof STAGE_LABELS]}
         {match.group_name ? ` · Grupo ${match.group_name}` : ''}
       </p>
 
