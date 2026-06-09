@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import PitchSelector from './PitchSelector'
 
 interface Player {
   id: string
@@ -310,94 +311,23 @@ export default function PredictionForm({ match, players, existing, readonly, use
         </div>
       </div>
 
-      {/* Goleadores */}
+      {/* Goleadores y asistencias — plantel sobre la cancha */}
       {players.length > 0 && (
-        <div className="bg-surface-container-low rounded-xl p-4 sm:p-6">
-          <div className="flex items-start justify-between mb-1">
-            <h3 className="font-headline font-bold text-on-surface uppercase tracking-wide text-sm">
-              Goleadores
-            </h3>
-            <span className={`font-label text-xs px-2 py-0.5 rounded-full ${
-              totalScorerGoals >= totalGoals
-                ? 'bg-error/15 text-error'
-                : 'bg-primary/15 text-primary'
-            }`}>
-              {totalScorerGoals}/{totalGoals}
-            </span>
-          </div>
-          <p className="font-body text-xs text-on-surface-variant/60 mb-1">
-            Opcional — +2 pts por cada acierto · Un jugador puede meter más de un gol
-          </p>
-          <p className="font-label text-[10px] text-on-surface-variant/40 mb-3 uppercase tracking-wide">
-            {totalGoals === 0
-              ? 'Ingresá un resultado para poder seleccionar goleadores'
-              : `Máximo ${totalGoals} gol${totalGoals !== 1 ? 'es' : ''} en total según tu resultado`}
-          </p>
-          <ScorerSelector
-            label={match.homeTeam.name}
-            players={homePlayers}
-            scorers={scorers}
-            onIncrement={incrementScorer}
-            onDecrement={decrementScorer}
-            disabled={readonly}
-            maxReached={totalScorerGoals >= totalGoals}
-          />
-          <div className="mt-3">
-            <ScorerSelector
-              label={match.awayTeam.name}
-              players={awayPlayers}
-              scorers={scorers}
-              onIncrement={incrementScorer}
-              onDecrement={decrementScorer}
-              disabled={readonly}
-              maxReached={totalScorerGoals >= totalGoals}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* Asistentes */}
-      {players.length > 0 && (
-        <div className="bg-surface-container-low rounded-xl p-4 sm:p-6">
-          <div className="flex items-start justify-between mb-1">
-            <h3 className="font-headline font-bold text-on-surface uppercase tracking-wide text-sm">
-              Asistentes
-            </h3>
-            <span className={`font-label text-xs px-2 py-0.5 rounded-full ${
-              totalAssists >= totalGoals
-                ? 'bg-error/15 text-error'
-                : 'bg-primary/15 text-primary'
-            }`}>
-              {totalAssists}/{totalGoals}
-            </span>
-          </div>
-          <p className="font-body text-xs text-on-surface-variant/60 mb-1">
-            Opcional — +1 pt por cada acierto
-          </p>
-          <p className="font-label text-[10px] text-on-surface-variant/40 mb-3 uppercase tracking-wide">
-            {totalGoals === 0
-              ? 'Ingresá un resultado para poder seleccionar asistentes'
-              : `Máximo ${totalGoals} asistencia${totalGoals !== 1 ? 's' : ''} en total según tu resultado`}
-          </p>
-          <PlayerSelector
-            label={match.homeTeam.name}
-            players={homePlayers}
-            selected={assisters}
-            onToggle={id => togglePlayer(id, assisters, setAssisters)}
-            disabled={readonly}
-            maxReached={totalAssists >= totalGoals}
-          />
-          <div className="mt-3">
-            <PlayerSelector
-              label={match.awayTeam.name}
-              players={awayPlayers}
-              selected={assisters}
-              onToggle={id => togglePlayer(id, assisters, setAssisters)}
-              disabled={readonly}
-              maxReached={totalAssists >= totalGoals}
-            />
-          </div>
-        </div>
+        <PitchSelector
+          homeTeam={match.homeTeam}
+          awayTeam={match.awayTeam}
+          homePlayers={homePlayers}
+          awayPlayers={awayPlayers}
+          scorers={scorers}
+          assisters={assisters}
+          totalGoals={totalGoals}
+          totalScorerGoals={totalScorerGoals}
+          totalAssists={totalAssists}
+          onIncrementScorer={incrementScorer}
+          onDecrementScorer={decrementScorer}
+          onToggleAssister={id => togglePlayer(id, assisters, setAssisters)}
+          readonly={readonly}
+        />
       )}
 
       {/* Penales — solo en fases eliminatorias */}
@@ -465,120 +395,3 @@ export default function PredictionForm({ match, players, existing, readonly, use
   )
 }
 
-function PlayerSelector({
-  label,
-  players,
-  selected,
-  onToggle,
-  disabled,
-  maxReached = false,
-}: {
-  label: string
-  players: Player[]
-  selected: string[]
-  onToggle: (id: string) => void
-  disabled: boolean
-  maxReached?: boolean
-}) {
-  if (players.length === 0) return null
-  return (
-    <div>
-      <p className="font-label font-semibold uppercase tracking-widest mb-2 text-[10px] text-on-surface-variant/50">
-        {label}
-      </p>
-      <div className="flex flex-wrap gap-2">
-        {players.map(p => {
-          const isSelected = selected.includes(p.id)
-          const isDisabled = disabled || (maxReached && !isSelected)
-          return (
-            <button
-              key={p.id}
-              type="button"
-              disabled={isDisabled}
-              onClick={() => onToggle(p.id)}
-              className={`text-xs px-2.5 py-1 rounded-full transition-all font-label disabled:opacity-30${
-                isSelected
-                  ? ' bg-primary/15 border border-primary text-primary'
-                  : ' bg-surface-container border border-outline-variant/10 text-on-surface-variant/70 hover:border-outline-variant/40'
-              }`}
-            >
-              {p.shirt_number ? `#${p.shirt_number} ` : ''}{p.name}
-            </button>
-          )
-        })}
-      </div>
-    </div>
-  )
-}
-
-function ScorerSelector({
-  label,
-  players,
-  scorers,
-  onIncrement,
-  onDecrement,
-  disabled,
-  maxReached,
-}: {
-  label: string
-  players: Player[]
-  scorers: Record<string, number>
-  onIncrement: (id: string) => void
-  onDecrement: (id: string) => void
-  disabled: boolean
-  maxReached: boolean
-}) {
-  if (players.length === 0) return null
-  return (
-    <div>
-      <p className="font-label font-semibold uppercase tracking-widest mb-2 text-[10px] text-on-surface-variant/50">
-        {label}
-      </p>
-      <div className="flex flex-wrap gap-2">
-        {players.map(p => {
-          const count = scorers[p.id] || 0
-          const isSelected = count > 0
-          const canAdd = !disabled && !maxReached
-          return (
-            <div
-              key={p.id}
-              className={`flex items-center gap-1 rounded-full transition-all font-label text-xs border ${
-                isSelected
-                  ? 'bg-primary/15 border-primary text-primary'
-                  : 'bg-surface-container border-outline-variant/10 text-on-surface-variant/70'
-              }`}
-            >
-              {isSelected && (
-                <button
-                  type="button"
-                  disabled={disabled}
-                  onClick={() => onDecrement(p.id)}
-                  className="w-6 h-7 flex items-center justify-center rounded-l-full hover:bg-black/20 transition-colors disabled:opacity-50 text-base leading-none"
-                >
-                  −
-                </button>
-              )}
-              <span className={`${isSelected ? 'px-1' : 'px-2.5'} py-1 select-none`}>
-                {p.shirt_number ? `#${p.shirt_number} ` : ''}{p.name}
-                {count > 1 && <span className="ml-1 font-bold">×{count}</span>}
-              </span>
-              <button
-                type="button"
-                disabled={!canAdd}
-                onClick={() => onIncrement(p.id)}
-                title={maxReached && !isSelected ? 'Límite de goles alcanzado' : undefined}
-                className={`w-6 h-7 flex items-center justify-center rounded-r-full transition-colors text-base leading-none ${
-                  canAdd
-                    ? 'hover:bg-black/20'
-                    : 'opacity-30 cursor-not-allowed'
-                } disabled:opacity-30`}
-              >
-                +
-              </button>
-            </div>
-          )
-        })}
-      </div>
-    </div>
-  )
-}
