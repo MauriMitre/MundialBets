@@ -159,7 +159,7 @@ export default function RulesPage() {
           <div className="bg-surface-container-low rounded-xl p-6">
             <h3 className="font-headline text-lg font-bold text-on-surface mb-3">¿Cuándo se calculan los puntos?</h3>
             <p className="text-on-surface-variant font-body leading-relaxed">
-              Los puntos se calculan cuando el admin carga el resultado final del partido. Hasta ese momento aparecen como "sin calcular".
+              Los puntos se calculan cuando el admin carga el resultado final del partido. Hasta ese momento aparecen como &quot;sin calcular&quot;.
             </p>
           </div>
 

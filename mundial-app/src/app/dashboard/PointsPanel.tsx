@@ -7,7 +7,7 @@ import { STAGE_LABELS } from '@/types'
 interface Profile { id: string; username: string; displayName: string | null; totalPoints: number }
 interface PredPlayer { player_id: string; event_type: string }
 interface MatchEvent  { match_id: string; player_id: string; event_type: string }
-interface Prediction {
+export interface Prediction {
   id: string
   user_id: string
   match_id: string
@@ -53,14 +53,33 @@ function getBreakdown(pred: Prediction, events: MatchEvent[]) {
     pred.predicted_home_score === home_score &&
     pred.predicted_away_score === away_score
 
-  const forMatch  = events.filter(e => e.match_id === pred.match_id)
-  const goalIds   = new Set(forMatch.filter(e => e.event_type === 'goal').map(e => e.player_id))
-  const assistIds = new Set(forMatch.filter(e => e.event_type === 'assist').map(e => e.player_id))
+  // Igual que calculate_prediction_points en la DB: cada fila predicha
+  // suma una vez POR CADA evento real que matchea (si predijiste 1 gol de
+  // un jugador que metió 2, son +2 aciertos, no 1)
+  const forMatch = events.filter(e => e.match_id === pred.match_id)
+  const goalCounts: Record<string, number> = {}
+  const assistCounts: Record<string, number> = {}
+  for (const e of forMatch) {
+    if (e.event_type === 'goal')   goalCounts[e.player_id]   = (goalCounts[e.player_id] ?? 0) + 1
+    if (e.event_type === 'assist') assistCounts[e.player_id] = (assistCounts[e.player_id] ?? 0) + 1
+  }
 
-  const correctScorers = pred.predPlayers.filter(p => p.event_type === 'goal'   && goalIds.has(p.player_id)).length
-  const correctAssists = pred.predPlayers.filter(p => p.event_type === 'assist' && assistIds.has(p.player_id)).length
+  const correctScorers = pred.predPlayers
+    .filter(p => p.event_type === 'goal')
+    .reduce((sum, p) => sum + (goalCounts[p.player_id] ?? 0), 0)
+  const correctAssists = pred.predPlayers
+    .filter(p => p.event_type === 'assist')
+    .reduce((sum, p) => sum + (assistCounts[p.player_id] ?? 0), 0)
 
   return { correctWinner, exactScore, correctScorers, correctAssists, correctPenalties }
+}
+
+export interface ScoringValues {
+  winner: number
+  exact: number
+  scorer: number
+  assist: number
+  penalty: number
 }
 
 export default function PointsPanel({
@@ -68,11 +87,13 @@ export default function PointsPanel({
   predictions,
   matchEvents,
   currentUserId,
+  scoring,
 }: {
   profiles: Profile[]
   predictions: Prediction[]
   matchEvents: MatchEvent[]
   currentUserId: string
+  scoring: ScoringValues
 }) {
   const [selectedId, setSelectedId] = useState(currentUserId)
 
@@ -185,27 +206,27 @@ export default function PointsPanel({
                 <div className="flex flex-wrap gap-1.5 mt-3 pt-3 border-t border-outline-variant/10">
                   {correctWinner && (
                     <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-green-500/10 text-green-400 border border-green-500/20 font-label">
-                      ✓ Ganador +3
+                      ✓ Ganador +{scoring.winner}
                     </span>
                   )}
                   {exactScore && (
                     <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 font-label">
-                      ✓ Resultado exacto +5
+                      ✓ Resultado exacto +{scoring.exact}
                     </span>
                   )}
                   {correctPenalties && (
                     <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-orange-500/10 text-orange-400 border border-orange-500/20 font-label">
-                      ✓ Penales exactos +5
+                      ✓ Penales exactos +{scoring.penalty}
                     </span>
                   )}
                   {correctScorers > 0 && (
                     <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 font-label">
-                      ✓ {correctScorers} goleador{correctScorers > 1 ? 'es' : ''} +{correctScorers * 2}
+                      ✓ {correctScorers} goleador{correctScorers > 1 ? 'es' : ''} +{correctScorers * scoring.scorer}
                     </span>
                   )}
                   {correctAssists > 0 && (
                     <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/20 font-label">
-                      ✓ {correctAssists} asistente{correctAssists > 1 ? 's' : ''} +{correctAssists}
+                      ✓ {correctAssists} asistente{correctAssists > 1 ? 's' : ''} +{correctAssists * scoring.assist}
                     </span>
                   )}
                 </div>

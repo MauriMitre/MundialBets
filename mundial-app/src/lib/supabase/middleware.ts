@@ -30,12 +30,25 @@ export async function updateSession(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser()
 
+  // Redirect que conserva las cookies que Supabase escribió durante esta
+  // request (rotación de tokens, signOut): crear un NextResponse nuevo sin
+  // trasladarlas deja al navegador con tokens huérfanos o ya consumidos
+  function redirectToLogin() {
+    const url = request.nextUrl.clone()
+    url.pathname = '/login'
+    const response = NextResponse.redirect(url)
+    supabaseResponse.cookies.getAll().forEach(cookie => response.cookies.set(cookie))
+    return response
+  }
+
   if (user) {
     const sessionStartedAt = request.cookies.get(SESSION_STARTED_COOKIE)?.value
     const now = Date.now()
+    const startedAt = sessionStartedAt ? Number(sessionStartedAt) : NaN
 
-    if (!sessionStartedAt) {
-      // Primera request después del login — guardar el momento de inicio
+    if (!sessionStartedAt || !Number.isFinite(startedAt) || startedAt > now) {
+      // Primera request después del login (o cookie corrupta/futura) —
+      // guardar el momento de inicio
       supabaseResponse.cookies.set(SESSION_STARTED_COOKIE, String(now), {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
@@ -43,12 +56,10 @@ export async function updateSession(request: NextRequest) {
         path: '/',
         maxAge: 60 * 60 * 24, // 24h techo para evitar cookies huérfanas
       })
-    } else if (now - parseInt(sessionStartedAt) > SESSION_DURATION_MS) {
-      // Sesión expirada — forzar logout
-      await supabase.auth.signOut()
-      const url = request.nextUrl.clone()
-      url.pathname = '/login'
-      const response = NextResponse.redirect(url)
+    } else if (now - startedAt > SESSION_DURATION_MS) {
+      // Sesión expirada — cerrar solo esta sesión (no las de otros dispositivos)
+      await supabase.auth.signOut({ scope: 'local' })
+      const response = redirectToLogin()
       response.cookies.delete(SESSION_STARTED_COOKIE)
       return response
     }
@@ -58,20 +69,10 @@ export async function updateSession(request: NextRequest) {
   const protectedPaths = ['/dashboard', '/predict', '/leaderboard', '/rules']
   const pathname = request.nextUrl.pathname
 
-  if (!user && protectedPaths.some(p => pathname.startsWith(p))) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/login'
-    return NextResponse.redirect(url)
+  if (!user && (protectedPaths.some(p => pathname.startsWith(p)) || pathname.startsWith('/admin'))) {
+    return redirectToLogin()
   }
-
-  if (pathname.startsWith('/admin')) {
-    if (!user) {
-      const url = request.nextUrl.clone()
-      url.pathname = '/login'
-      return NextResponse.redirect(url)
-    }
-    // La verificación de admin se hace en el layout del admin
-  }
+  // La verificación de admin se hace en el layout del admin
 
   return supabaseResponse
 }

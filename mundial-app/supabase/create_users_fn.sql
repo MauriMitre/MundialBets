@@ -20,3 +20,12 @@ BEGIN
         is_admin = EXCLUDED.is_admin;
 END;
 $$;
+
+-- CRÍTICO: sin esto, cualquier usuario autenticado puede llamar la RPC
+-- con p_is_admin = true y hacerse admin (SECURITY DEFINER bypasea RLS).
+-- Solo el service_role (script de creación de usuarios) puede ejecutarla.
+REVOKE EXECUTE ON FUNCTION create_user_profile(UUID, TEXT, TEXT, BOOLEAN) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION create_user_profile(UUID, TEXT, TEXT, BOOLEAN) TO service_role;
+
+-- Cuando termines de usar el script, eliminala:
+-- DROP FUNCTION create_user_profile(UUID, TEXT, TEXT, BOOLEAN);

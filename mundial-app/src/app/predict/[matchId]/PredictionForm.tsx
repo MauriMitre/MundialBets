@@ -84,7 +84,8 @@ export default function PredictionForm({ match, players, existing, readonly, use
     setScorers(prev => {
       const count = prev[id] || 0
       if (count <= 1) {
-        const { [id]: _, ...rest } = prev
+        const rest = { ...prev }
+        delete rest[id]
         return rest
       }
       return { ...prev, [id]: count - 1 }
@@ -149,6 +150,16 @@ export default function PredictionForm({ match, players, existing, readonly, use
       const penaltyAwayVal = penaltyAway !== '' ? parseInt(penaltyAway) : null
       const bothPenalties = penaltyHomeVal !== null && penaltyAwayVal !== null
 
+      // Borrar goleadores/asistentes previos ANTES del upsert: la validación
+      // server-side rechaza predicciones con más goleadores que goles
+      if (existing?.id) {
+        const { error: delErr } = await supabase
+          .from('prediction_players')
+          .delete()
+          .eq('prediction_id', existing.id)
+        if (delErr) { setError('Error al guardar. ¿Cerraron las apuestas? Intentá de nuevo.'); return }
+      }
+
       const { data: pred, error: predErr } = await supabase
         .from('predictions')
         .upsert({
@@ -166,8 +177,6 @@ export default function PredictionForm({ match, players, existing, readonly, use
 
       if (predErr || !pred) { setError('Error al guardar. Intentá de nuevo.'); return }
 
-      await supabase.from('prediction_players').delete().eq('prediction_id', pred.id)
-
       const playerRows = [
         ...Object.entries(scorers).flatMap(([pid, count]) =>
           Array.from({ length: count }, () => ({ prediction_id: pred.id, player_id: pid, event_type: 'goal' }))
@@ -175,7 +184,11 @@ export default function PredictionForm({ match, players, existing, readonly, use
         ...assisters.map(pid => ({ prediction_id: pred.id, player_id: pid, event_type: 'assist' })),
       ]
       if (playerRows.length > 0) {
-        await supabase.from('prediction_players').insert(playerRows)
+        const { error: insErr } = await supabase.from('prediction_players').insert(playerRows)
+        if (insErr) {
+          setError('El resultado se guardó pero los goleadores/asistentes no. Intentá de nuevo.')
+          return
+        }
       }
 
       setSuccess(true)

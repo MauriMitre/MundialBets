@@ -15,14 +15,16 @@ export default async function LeaderboardPage({
 
   const { data: { user } } = await supabase.auth.getUser()
 
-  const { data: profiles } = await supabase
+  const { data: profiles, error: profilesError } = await supabase
     .from('profiles')
     .select('id, username, display_name, total_points')
     .order('total_points', { ascending: false })
+  if (profilesError) throw new Error(`Error cargando perfiles: ${profilesError.message}`)
 
-  const { data: allPreds } = await supabase
+  const { data: allPreds, error: predsError } = await supabase
     .from('predictions')
     .select('user_id')
+  if (predsError) throw new Error(`Error cargando predicciones: ${predsError.message}`)
 
   const predCountMap: Record<string, number> = {}
   for (const pred of allPreds ?? []) {
@@ -36,8 +38,11 @@ export default async function LeaderboardPage({
     ? allProfiles.filter(p => (predCountMap[p.id] ?? 0) > 0)
     : allProfiles
 
-  const top3 = list.slice(0, 3)
-  const rest = list.slice(3)
+  // El podio necesita 3 jugadores; con menos, todos van a la tabla
+  // (antes la página quedaba en blanco con 1 o 2 perfiles)
+  const hasPodium = list.length >= 3
+  const top3 = hasPodium ? list.slice(0, 3) : []
+  const rest = hasPodium ? list.slice(3) : list
 
   const currentUserId = user?.id
   const currentUserIndex = list.findIndex(p => p.id === currentUserId)
@@ -194,7 +199,7 @@ export default async function LeaderboardPage({
             </thead>
             <tbody>
               {rest.map((profile, idx) => {
-                const rank = idx + 4
+                const rank = idx + (hasPodium ? 4 : 1)
                 const isMe = profile.id === currentUserId
                 const paddedRank = String(rank).padStart(2, '0')
 

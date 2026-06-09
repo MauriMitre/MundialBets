@@ -37,13 +37,14 @@ export default async function PredictPage({ params }: Props) {
     .order('position')
     .order('shirt_number')
 
-  // Predicción existente
-  const { data: prediction } = await supabase
+  // Predicción existente (maybeSingle: no tener predicción no es un error)
+  const { data: prediction, error: predictionError } = await supabase
     .from('predictions')
     .select('*, predictionPlayers:prediction_players ( * )')
     .eq('user_id', user.id)
     .eq('match_id', matchId)
-    .single()
+    .maybeSingle()
+  if (predictionError) throw new Error(`Error cargando tu predicción: ${predictionError.message}`)
 
   const canPredict = match.status === 'upcoming' && isBettingOpen(match.betting_closes_at)
   const isFinished = match.status === 'finished'
@@ -99,13 +100,15 @@ export default async function PredictPage({ params }: Props) {
         </div>
       </div>
 
-      {/* Formulario de predicción */}
-      {(canPredict || (isFinished && prediction)) && (
+      {/* Formulario de predicción: editable con apuestas abiertas,
+          solo lectura si hay predicción y el partido está en vivo,
+          cerrado o finalizado */}
+      {(canPredict || prediction) && (
         <PredictionForm
           match={match}
           players={players ?? []}
           existing={prediction}
-          readonly={isFinished}
+          readonly={!canPredict}
           userId={user.id}
           isKnockout={isKnockout(match.stage)}
         />

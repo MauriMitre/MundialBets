@@ -65,7 +65,7 @@ export default function MatchList({ matches, teams }: { matches: Match[]; teams:
         away_team_id: awayTeamId,
         match_date: argentinaInputToUTC(form.get('match_date') as string),
         stage: form.get('stage') as string,
-        group_name: (form.get('group_name') as string) || null,
+        group_name: ((form.get('group_name') as string) || '').trim().toUpperCase() || null,
         venue: (form.get('venue') as string) || null,
       }).eq('id', id)
 

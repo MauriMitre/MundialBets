@@ -2,8 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
-import { useRouter } from 'next/navigation'
+import { logout } from '@/actions/auth'
 import type { Profile } from '@/types'
 
 interface NavbarProps {
@@ -17,13 +16,9 @@ const navLinks = [
 
 export default function Navbar({ profile }: NavbarProps) {
   const pathname = usePathname()
-  const router = useRouter()
 
   async function handleLogout() {
-    const supabase = createClient()
-    await supabase.auth.signOut()
-    router.push('/login')
-    router.refresh()
+    await logout()
   }
 
   return (
@@ -56,7 +51,7 @@ export default function Navbar({ profile }: NavbarProps) {
             </Link>
           ))}
 
-          {(profile as any)?.is_admin && (
+          {profile?.is_admin && (
             <Link
               href="/admin"
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
@@ -75,10 +70,10 @@ export default function Navbar({ profile }: NavbarProps) {
         <div className="flex items-center gap-2">
           <div className="text-right hidden sm:block">
             <p className="text-xs font-semibold text-white leading-none">
-              {profile?.displayName || profile?.username}
+              {profile?.display_name || profile?.username}
             </p>
             <p className="text-xs mt-0.5" style={{ color: '#f5c518' }}>
-              {profile?.totalPoints ?? 0} pts
+              {profile?.total_points ?? 0} pts
             </p>
           </div>
           <button

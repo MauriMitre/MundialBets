@@ -12,7 +12,7 @@ export default async function HistoryPage() {
   if (!user) redirect('/login')
 
   // Queries en paralelo
-  const [{ data: predictions }, { data: missedMatches }] = await Promise.all([
+  const [predsRes, missedRes] = await Promise.all([
     supabase
       .from('predictions')
       .select(`
@@ -32,6 +32,7 @@ export default async function HistoryPage() {
           status,
           home_score,
           away_score,
+          knockout_winner,
           penalty_home_score,
           penalty_away_score,
           homeTeam:home_team_id ( id, name, code ),
@@ -48,24 +49,31 @@ export default async function HistoryPage() {
     supabase
       .from('matches')
       .select(`
-        id, match_date, stage, group_name, home_score, away_score,
+        id, match_date, stage, group_name, home_score, away_score, knockout_winner,
         homeTeam:home_team_id ( id, name, code ),
         awayTeam:away_team_id ( id, name, code )
       `)
-      .eq('status', 'finished'),
+      .eq('status', 'finished')
+      .order('match_date', { ascending: false }),
   ])
 
+  if (predsRes.error) throw new Error(`Error cargando tus predicciones: ${predsRes.error.message}`)
+  if (missedRes.error) throw new Error(`Error cargando partidos: ${missedRes.error.message}`)
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const preds: any[] = predictions ?? []
+  const preds: any[] = predsRes.data ?? []
   const predictedMatchIds = new Set(preds.map(p => p.match?.id as string))
-  const missed = (missedMatches ?? []).filter(m => !predictedMatchIds.has(m.id))
+  const missed = (missedRes.data ?? []).filter(m => !predictedMatchIds.has(m.id))
 
   const finished = preds.filter(p => p.match?.status === 'finished')
   const pending  = preds.filter(p => p.match?.status !== 'finished')
 
   const totalPoints = finished.reduce((sum, p) => sum + (p.points_earned ?? 0), 0)
-  const accuracy = finished.length > 0
-    ? Math.round((finished.filter(p => (p.points_earned ?? 0) > 0).length / finished.length) * 100)
+  // Solo las predicciones ya calculadas cuentan para la efectividad:
+  // una finalizada sin calcular todavía no es un fallo
+  const scored = finished.filter(p => p.is_scored)
+  const accuracy = scored.length > 0
+    ? Math.round((scored.filter(p => (p.points_earned ?? 0) > 0).length / scored.length) * 100)
     : 0
 
   return (
@@ -107,11 +115,11 @@ export default async function HistoryPage() {
                   predictedHomeScore={p.predicted_home_score}
                   predictedAwayScore={p.predicted_away_score}
                   predictedWinner={p.predicted_winner}
-                  predictedPenaltyHomeScore={(p as any).predicted_penalty_home_score ?? null}
-                  predictedPenaltyAwayScore={(p as any).predicted_penalty_away_score ?? null}
+                  predictedPenaltyHomeScore={p.predicted_penalty_home_score ?? null}
+                  predictedPenaltyAwayScore={p.predicted_penalty_away_score ?? null}
                   pointsEarned={null}
                   isScored={false}
-                  predictionPlayers={(p.predictionPlayers ?? []) as any}
+                  predictionPlayers={p.predictionPlayers ?? []}
                   pending
                 />
               )
@@ -136,11 +144,11 @@ export default async function HistoryPage() {
                   predictedHomeScore={p.predicted_home_score}
                   predictedAwayScore={p.predicted_away_score}
                   predictedWinner={p.predicted_winner}
-                  predictedPenaltyHomeScore={(p as any).predicted_penalty_home_score ?? null}
-                  predictedPenaltyAwayScore={(p as any).predicted_penalty_away_score ?? null}
+                  predictedPenaltyHomeScore={p.predicted_penalty_home_score ?? null}
+                  predictedPenaltyAwayScore={p.predicted_penalty_away_score ?? null}
                   pointsEarned={p.points_earned}
                   isScored={p.is_scored}
-                  predictionPlayers={(p.predictionPlayers ?? []) as any}
+                  predictionPlayers={p.predictionPlayers ?? []}
                 />
               )
             })}
@@ -233,6 +241,7 @@ function PredictionRow({
   const awayTeam = match.awayTeam as { name: string; code: string }
   const homeScore = match.home_score as number | null
   const awayScore = match.away_score as number | null
+  const knockoutWinner = match.knockout_winner as string | null
   const penaltyHomeScore = match.penalty_home_score as number | null
   const penaltyAwayScore = match.penalty_away_score as number | null
   const stage = match.stage as string
@@ -249,11 +258,19 @@ function PredictionRow({
     predictedHomeScore === homeScore &&
     predictedAwayScore === awayScore
 
+  // Ganador real (penales en eliminatorias si empate en 90')
+  const actualWinner =
+    homeScore === null || awayScore === null ? null :
+    homeScore > awayScore ? 'home' :
+    awayScore > homeScore ? 'away' :
+    knockoutWinner ?? 'draw'
+
   const gotWinner =
     !missed &&
     !pending &&
     !gotExact &&
-    (pointsEarned ?? 0) > 0
+    actualWinner !== null &&
+    predictedWinner === actualWinner
 
   // Penales exactos
   const gotPenalties =

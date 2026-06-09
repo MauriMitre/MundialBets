@@ -1,8 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
+import { usePathname } from 'next/navigation'
+import { logout } from '@/actions/auth'
 import { LayoutDashboard, Target, Trophy, BookOpen, Settings, LogOut, History } from 'lucide-react'
 import type { Profile } from '@/types'
 
@@ -16,13 +16,11 @@ const navLinks = [
 
 export default function Sidebar({ profile }: { profile: Profile | null }) {
   const pathname = usePathname()
-  const router   = useRouter()
 
+  // Server action: además de cerrar sesión, borra la cookie httpOnly
+  // session_started_at (desde el cliente no se puede)
   async function handleLogout() {
-    const supabase = createClient()
-    await supabase.auth.signOut()
-    router.push('/login')
-    router.refresh()
+    await logout()
   }
 
   function isActive(href: string) {
@@ -68,7 +66,7 @@ export default function Sidebar({ profile }: { profile: Profile | null }) {
           )
         })}
 
-        {(profile as any)?.is_admin && (
+        {profile?.is_admin && (
           <Link
             href="/admin"
             className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-sm font-body ${

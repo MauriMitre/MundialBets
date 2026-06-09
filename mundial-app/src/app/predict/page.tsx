@@ -1,9 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { format, parseISO, isSameDay } from 'date-fns'
-import { es } from 'date-fns/locale'
 import { STAGE_LABELS } from '@/types'
-import { formatMatchDate, isBettingOpen } from '@/lib/utils'
+import { formatMatchDate, isBettingOpen, argDateKey, argDateLabel } from '@/lib/utils'
 import { flagUrl } from '@/lib/flags'
 
 export const revalidate = 60
@@ -11,17 +10,19 @@ export const revalidate = 60
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type RawMatch = any
 
-function groupMatchesByDate(matches: RawMatch[]): { label: string; date: Date; matches: RawMatch[] }[] {
-  const groups: { label: string; date: Date; matches: RawMatch[] }[] = []
+// Agrupa por día calendario en hora Argentina (no la TZ del servidor,
+// que en Vercel es UTC y corría los partidos de 21:00+ al día siguiente)
+function groupMatchesByDate(matches: RawMatch[]): { label: string; key: string; matches: RawMatch[] }[] {
+  const groups: { label: string; key: string; matches: RawMatch[] }[] = []
   for (const match of matches) {
-    const matchDate = parseISO(match.match_date)
-    const existing = groups.find(g => isSameDay(g.date, matchDate))
+    const key = argDateKey(match.match_date)
+    const existing = groups.find(g => g.key === key)
     if (existing) {
       existing.matches.push(match)
     } else {
       groups.push({
-        label: format(matchDate, "EEEE, d 'de' MMMM", { locale: es }),
-        date: matchDate,
+        label: argDateLabel(match.match_date),
+        key,
         matches: [match],
       })
     }
@@ -32,8 +33,9 @@ function groupMatchesByDate(matches: RawMatch[]): { label: string; date: Date; m
 export default async function PredictPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
 
-  const { data: matches } = await supabase
+  const { data: matches, error: matchesError } = await supabase
     .from('matches')
     .select(`
       *,
@@ -41,11 +43,13 @@ export default async function PredictPage() {
       awayTeam:away_team_id ( id, name, code, flag_url )
     `)
     .order('match_date', { ascending: true })
+  if (matchesError) throw new Error(`Error cargando partidos: ${matchesError.message}`)
 
-  const { data: userPredictions } = await supabase
+  const { data: userPredictions, error: predsError } = await supabase
     .from('predictions')
     .select('match_id')
-    .eq('user_id', user!.id)
+    .eq('user_id', user.id)
+  if (predsError) throw new Error(`Error cargando tus predicciones: ${predsError.message}`)
 
   const predictedMatchIds = new Set(userPredictions?.map(p => p.match_id) ?? [])
 
@@ -61,7 +65,7 @@ export default async function PredictPage() {
   ))
   const dateToJornada = new Map<string, number>()
   allGroups.forEach((g, i) => {
-    dateToJornada.set(format(g.date, 'yyyy-MM-dd'), i + 1)
+    dateToJornada.set(g.key, i + 1)
   })
 
   return (
@@ -82,9 +86,9 @@ export default async function PredictPage() {
       {live.length > 0 && (
         <section className="mb-16">
           {liveGroups.map(group => {
-            const jornada = dateToJornada.get(format(group.date, 'yyyy-MM-dd'))
+            const jornada = dateToJornada.get(group.key)
             return (
-              <div key={group.date.toISOString()}>
+              <div key={group.key}>
                 <div className="flex items-baseline gap-4 mb-8">
                   <h2 className="font-headline text-3xl font-bold text-error flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-error animate-pulse inline-block" />
@@ -115,9 +119,9 @@ export default async function PredictPage() {
       {upcoming.length > 0 && (
         <section className="space-y-16">
           {upcomingGroups.map(group => {
-            const jornada = dateToJornada.get(format(group.date, 'yyyy-MM-dd'))
+            const jornada = dateToJornada.get(group.key)
             return (
-              <div key={group.date.toISOString()} className="mb-16">
+              <div key={group.key} className="mb-16">
                 <div className="flex items-baseline gap-4 mb-8">
                   <h2 className="font-headline text-3xl font-bold text-secondary-container capitalize">
                     {group.label}

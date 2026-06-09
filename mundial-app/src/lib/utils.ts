@@ -31,6 +31,19 @@ export function formatMatchDate(dateStr: string): string {
   return `${match.day} ${match.month} ${match.time}`
 }
 
+/** Clave YYYY-MM-DD del día del partido en hora Argentina (para agrupar) */
+export function argDateKey(dateStr: string): string {
+  return argParts(new Date(dateStr)).dateKey
+}
+
+/** Etiqueta "lunes, 16 de junio" del día del partido en hora Argentina */
+export function argDateLabel(dateStr: string): string {
+  return new Intl.DateTimeFormat('es-AR', {
+    timeZone: TZ,
+    weekday: 'long', day: 'numeric', month: 'long',
+  }).format(new Date(dateStr))
+}
+
 /** Convierte un valor de input datetime-local (ingresado en hora Argentina) a ISO UTC */
 export function argentinaInputToUTC(dtLocal: string): string {
   return new Date(`${dtLocal}-03:00`).toISOString()

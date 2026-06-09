@@ -21,7 +21,9 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Paso 2: borrar usuarios previos si existían (para re-correr limpio)
-DELETE FROM auth.users WHERE email LIKE '%@mundial.app';
+-- ⚠️ DESTRUCTIVO: borra en cascada perfiles, predicciones y puntos de
+-- esos usuarios. Solo descomentar para un reset COMPLETO desde cero.
+-- DELETE FROM auth.users WHERE email LIKE '%@mundial.app';
 
 -- Paso 3: crear los usuarios
 DO $$

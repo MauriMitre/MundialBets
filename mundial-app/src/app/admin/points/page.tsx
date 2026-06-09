@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import PointsHistory from './PointsHistory'
+import PointsHistory, { type Prediction } from './PointsHistory'
 
 export default async function AdminPointsPage() {
   const supabase = await createClient()
@@ -8,6 +8,7 @@ export default async function AdminPointsPage() {
     { data: profiles },
     { data: predictions },
     { data: matchEvents },
+    { data: rules },
   ] = await Promise.all([
     supabase
       .from('profiles')
@@ -19,10 +20,12 @@ export default async function AdminPointsPage() {
       .select(`
         id, user_id, match_id,
         predicted_winner, predicted_home_score, predicted_away_score,
+        predicted_penalty_home_score, predicted_penalty_away_score,
         points_earned,
         match:matches(
           id, match_date, stage, group_name,
-          home_score, away_score,
+          home_score, away_score, knockout_winner,
+          penalty_home_score, penalty_away_score,
           homeTeam:home_team_id(name, code),
           awayTeam:away_team_id(name, code)
         ),
@@ -34,7 +37,21 @@ export default async function AdminPointsPage() {
     supabase
       .from('match_events')
       .select('match_id, player_id, event_type'),
+
+    supabase
+      .from('scoring_rules')
+      .select('rule_key, points'),
   ])
+
+  const ruleMap: Record<string, number> = {}
+  for (const r of rules ?? []) ruleMap[r.rule_key] = r.points
+  const scoring = {
+    winner:  ruleMap.correct_winner ?? 3,
+    exact:   ruleMap.correct_exact_score ?? 5,
+    scorer:  ruleMap.correct_scorer ?? 2,
+    assist:  ruleMap.correct_assist ?? 1,
+    penalty: ruleMap.correct_penalty_score ?? 5,
+  }
 
   return (
     <div className="space-y-4">
@@ -46,8 +63,9 @@ export default async function AdminPointsPage() {
       </div>
       <PointsHistory
         profiles={profiles ?? []}
-        predictions={(predictions ?? []) as any}
+        predictions={(predictions ?? []) as unknown as Prediction[]}
         matchEvents={matchEvents ?? []}
+        scoring={scoring}
       />
     </div>
   )

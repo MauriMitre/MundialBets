@@ -49,6 +49,9 @@ model Match {
   status          String    @default("upcoming")
   homeScore       Int?      @map("home_score")
   awayScore       Int?      @map("away_score")
+  knockoutWinner    String? @map("knockout_winner")
+  penaltyHomeScore  Int?    @map("penalty_home_score")
+  penaltyAwayScore  Int?    @map("penalty_away_score")
   isScored        Boolean   @default(false) @map("is_scored")
   createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz
 
@@ -105,6 +108,8 @@ model Prediction {
   predictedWinner      String?   @map("predicted_winner")
   predictedHomeScore   Int?      @map("predicted_home_score")
   predictedAwayScore   Int?      @map("predicted_away_score")
+  predictedPenaltyHomeScore Int? @map("predicted_penalty_home_score")
+  predictedPenaltyAwayScore Int? @map("predicted_penalty_away_score")
   pointsEarned         Int       @default(0) @map("points_earned")
   isScored             Boolean   @default(false) @map("is_scored")
   createdAt            DateTime  @default(now()) @map("created_at") @db.Timestamptz

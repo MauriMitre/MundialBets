@@ -10,7 +10,8 @@ const ISO2: Record<string, string> = {
   SUI: 'ch', DEN: 'dk', SWE: 'se', POL: 'pl', SRB: 'rs',
   UKR: 'ua', CZE: 'cz', HUN: 'hu', TUR: 'tr', GRE: 'gr',
   RUS: 'ru', AUT: 'at', NOR: 'no', SCO: 'gb-sct', ALB: 'al',
-  SVK: 'sk', SVN: 'si', ISL: 'is', FIN: 'fi', ROM: 'ro',
+  SVK: 'sk', SVN: 'si', ISL: 'is', FIN: 'fi',
+  ROU: 'ro', ROM: 'ro', // ROU es el código FIFA vigente; ROM es el viejo
   WAL: 'gb-wls', IRL: 'ie', NZL: 'nz', MLI: 'ml', CIV: 'ci',
   KSA: 'sa', PAK: 'pk', CHN: 'cn', IND: 'in', IRQ: 'iq',
   LIB: 'lb', SYR: 'sy', JOR: 'jo', KWT: 'kw', UAE: 'ae',
@@ -44,5 +45,6 @@ export function flagEmoji(code: string): string {
     UKR: '🇺🇦', CZE: '🇨🇿', HUN: '🇭🇺', TUR: '🇹🇷', GRE: '🇬🇷',
     RUS: '🇷🇺', AUT: '🇦🇹', NOR: '🇳🇴', SCO: '🏴󠁧󠁢󠁳󠁣󠁴󠁿',
   }
-  return flags[code] ?? '🏳️'
+  // Normalizar igual que flagUrl para que ambas funciones coincidan
+  return flags[code?.toUpperCase()] ?? '🏳️'
 }

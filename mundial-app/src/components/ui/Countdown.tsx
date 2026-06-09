@@ -43,21 +43,29 @@ export default function Countdown({ targetDate }: CountdownProps) {
 
   useEffect(() => {
     const targetMs = new Date(targetDate).getTime()
+    let id: ReturnType<typeof setInterval> | undefined
 
-    if (isNaN(targetMs)) {
-      setTime({ days: '00', hrs: '00', min: '00', seg: '00', expired: false, invalid: true })
-      return
-    }
-
-    setTime(calculate(targetMs))
-
-    const id = setInterval(() => {
+    const update = () => {
+      if (isNaN(targetMs)) {
+        setTime({ days: '00', hrs: '00', min: '00', seg: '00', expired: false, invalid: true })
+        return
+      }
       const next = calculate(targetMs)
       setTime(next)
-      if (next.expired) clearInterval(id)
-    }, 1000)
+      if (next.expired && id) clearInterval(id)
+    }
 
-    return () => clearInterval(id)
+    // Primer cálculo diferido: setState síncrono dentro del effect
+    // dispara renders en cascada (react-hooks/set-state-in-effect)
+    const t = setTimeout(update, 0)
+    if (!isNaN(targetMs)) {
+      id = setInterval(update, 1000)
+    }
+
+    return () => {
+      clearTimeout(t)
+      if (id) clearInterval(id)
+    }
   }, [targetDate])
 
   if (!time) {

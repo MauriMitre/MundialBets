@@ -7,11 +7,12 @@ export default async function ProfilePage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: profile } = await supabase
+  const { data: profile, error: profileError } = await supabase
     .from('profiles')
     .select('id, username, display_name, total_points, is_admin')
     .eq('id', user.id)
-    .single()
+    .maybeSingle()
+  if (profileError) throw new Error(`Error cargando tu perfil: ${profileError.message}`)
 
   if (!profile) {
     return (

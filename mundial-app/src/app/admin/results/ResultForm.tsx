@@ -32,7 +32,8 @@ interface Props {
   initialPenaltyAwayScore?: number | null
 }
 
-interface EventEntry { playerId: string; type: 'goal' | 'assist'; minute: string }
+type EventType = 'goal' | 'assist' | 'yellow_card' | 'red_card'
+interface EventEntry { playerId: string; type: EventType; minute: string }
 
 export default function ResultForm({ match, homePlayers, awayPlayers, initialEvents = [], isKnockout = false, initialKnockoutWinner = null, initialPenaltyHomeScore = null, initialPenaltyAwayScore = null }: Props) {
   const router = useRouter()
@@ -46,14 +47,12 @@ export default function ResultForm({ match, homePlayers, awayPlayers, initialEve
   const [events, setEvents] = useState<EventEntry[]>(
     initialEvents.map(e => ({
       playerId: e.player_id,
-      type: e.event_type as 'goal' | 'assist',
+      type: e.event_type as EventType,
       minute: e.minute?.toString() ?? '',
     }))
   )
   const [error, setError] = useState('')
   const [done, setDone] = useState(false)
-
-  const allPlayers = [...homePlayers, ...awayPlayers]
 
   function addEvent() {
     setEvents(prev => [...prev, { playerId: '', type: 'goal', minute: '' }])
@@ -73,8 +72,10 @@ export default function ResultForm({ match, homePlayers, awayPlayers, initialEve
     setEvents(prev => {
       const goals   = prev.filter(e => e.type === 'goal')
       const assists = prev.filter(e => e.type === 'assist')
+      // Las tarjetas no dependen del marcador: se conservan tal cual
+      const cards   = prev.filter(e => e.type === 'yellow_card' || e.type === 'red_card')
 
-      const adjustTo = (list: EventEntry[], type: 'goal' | 'assist', target: number): EventEntry[] => {
+      const adjustTo = (list: EventEntry[], type: EventType, target: number): EventEntry[] => {
         if (list.length >= target) return list.slice(0, target)
         const extra = Array.from({ length: target - list.length }, () => ({ playerId: '', type, minute: '' }))
         return [...list, ...extra]
@@ -83,6 +84,7 @@ export default function ResultForm({ match, homePlayers, awayPlayers, initialEve
       return [
         ...adjustTo(goals,   'goal',   total),
         ...adjustTo(assists, 'assist', total),
+        ...cards,
       ]
     })
   }
@@ -141,11 +143,12 @@ export default function ResultForm({ match, homePlayers, awayPlayers, initialEve
       if (matchErr) { setError(matchErr.message); return }
 
       // 2. Reemplazar siempre los eventos
-      await supabase.from('match_events').delete().eq('match_id', match.id)
+      const { error: delErr } = await supabase.from('match_events').delete().eq('match_id', match.id)
+      if (delErr) { setError(delErr.message); return }
 
       const validEvents = events.filter(ev => ev.playerId)
       if (validEvents.length > 0) {
-        await supabase.from('match_events').insert(
+        const { error: insErr } = await supabase.from('match_events').insert(
           validEvents.map(ev => ({
             match_id: match.id,
             player_id: ev.playerId,
@@ -153,11 +156,15 @@ export default function ResultForm({ match, homePlayers, awayPlayers, initialEve
             minute: ev.minute ? parseInt(ev.minute) : null,
           }))
         )
+        if (insErr) { setError(insErr.message); return }
       }
 
-      // 3. Si está finalizado y no se calcularon puntos aún, llamar a la función SQL
-      if (status === 'finished' && !match.is_scored) {
-        await supabase.rpc('close_match', { match_id: match.id })
+      // 3. Si está finalizado, calcular (o recalcular) los puntos.
+      // close_match es idempotente: corregir un resultado ya cargado
+      // ajusta los puntos de todos por la diferencia.
+      if (status === 'finished') {
+        const { error: rpcErr } = await supabase.rpc('close_match', { match_id: match.id })
+        if (rpcErr) { setError(rpcErr.message); return }
       }
 
       setDone(true)
@@ -354,7 +361,9 @@ export default function ResultForm({ match, homePlayers, awayPlayers, initialEve
       </button>
 
       {match.is_scored && (
-        <p className="text-white/30 text-xs">Los puntos ya fueron calculados para este partido.</p>
+        <p className="text-white/30 text-xs">
+          Los puntos ya fueron calculados — si corregís el resultado, se recalculan al guardar.
+        </p>
       )}
     </form>
   )

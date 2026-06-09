@@ -12,7 +12,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     .from('profiles')
     .select('*')
     .eq('id', user.id)
-    .single()
+    .maybeSingle()
 
   if (!profile?.is_admin) redirect('/dashboard')
 

@@ -19,7 +19,7 @@ export default function TopNavbar({ profile }: { profile: Profile | null }) {
     return pathname.startsWith(href)
   }
 
-  const initial = (profile?.displayName || profile?.username || 'U').charAt(0).toUpperCase()
+  const initial = (profile?.display_name || profile?.username || 'U').charAt(0).toUpperCase()
 
   return (
     <nav
@@ -54,7 +54,7 @@ export default function TopNavbar({ profile }: { profile: Profile | null }) {
       <div className="flex items-center gap-3">
         {profile && (
           <span className="hidden sm:block text-sm text-on-surface-variant font-label">
-            {profile.totalPoints ?? 0} <span className="text-primary font-bold">pts</span>
+            {profile.total_points ?? 0} <span className="text-primary font-bold">pts</span>
           </span>
         )}
         <div className="w-10 h-10 rounded-full bg-surface-container-high border border-outline-variant/30 flex items-center justify-center overflow-hidden">

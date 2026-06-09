@@ -11,7 +11,7 @@ export default async function RulesLayout({ children }: { children: React.ReactN
     .from('profiles')
     .select('*')
     .eq('id', user.id)
-    .single()
+    .maybeSingle()
 
   return <AppShell profile={profile}>{children}</AppShell>
 }

@@ -1,19 +1,22 @@
 import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { flagUrl } from '@/lib/flags'
 import Countdown from '@/components/ui/Countdown'
-import PointsPanel from './PointsPanel'
+import PointsPanel, { type Prediction as ScoredPrediction, type ScoringValues } from './PointsPanel'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
 
   // 1. User profile
-  const { data: profileRaw } = await supabase
+  const { data: profileRaw, error: profileError } = await supabase
     .from('profiles')
     .select('id, username, display_name, total_points')
-    .eq('id', user!.id)
-    .single()
+    .eq('id', user.id)
+    .maybeSingle()
+  if (profileError) throw new Error(`Error cargando tu perfil: ${profileError.message}`)
 
   const profile = profileRaw
     ? {
@@ -27,10 +30,11 @@ export default async function DashboardPage() {
   const userPoints = profile?.totalPoints ?? 0
 
   // 2. All profiles (leaderboard + panel de puntos)
-  const { data: allProfilesRaw } = await supabase
+  const { data: allProfilesRaw, error: allProfilesError } = await supabase
     .from('profiles')
     .select('id, username, display_name, total_points')
     .order('total_points', { ascending: false })
+  if (allProfilesError) throw new Error(`Error cargando perfiles: ${allProfilesError.message}`)
 
   const allProfiles = (allProfilesRaw ?? []).map((p: Record<string, unknown>) => ({
     id: p.id as string,
@@ -41,13 +45,12 @@ export default async function DashboardPage() {
 
   const topProfiles = allProfiles.slice(0, 5)
 
-  // 3. Prediction count + puntos por partido (paralelo)
+  // 3. Prediction count + puntos por partido + reglas (paralelo)
   const allProfileIds = allProfiles.map(p => p.id)
-  const [{ data: predCounts }, { data: scoredPreds }, { data: matchEvents }] = await Promise.all([
-    supabase
-      .from('predictions')
-      .select('user_id')
-      .in('user_id', allProfileIds.length > 0 ? allProfileIds : ['']),
+  const [predCountsRes, scoredPredsRes, matchEventsRes, rulesRes] = await Promise.all([
+    allProfileIds.length > 0
+      ? supabase.from('predictions').select('user_id').in('user_id', allProfileIds)
+      : Promise.resolve({ data: [], error: null }),
     supabase
       .from('predictions')
       .select(`
@@ -69,7 +72,27 @@ export default async function DashboardPage() {
     supabase
       .from('match_events')
       .select('match_id, player_id, event_type'),
+    supabase
+      .from('scoring_rules')
+      .select('rule_key, points'),
   ])
+
+  for (const res of [predCountsRes, scoredPredsRes, matchEventsRes, rulesRes]) {
+    if (res.error) throw new Error(`Error cargando datos del dashboard: ${res.error.message}`)
+  }
+  const predCounts = predCountsRes.data
+  const scoredPreds = scoredPredsRes.data
+  const matchEvents = matchEventsRes.data
+
+  const ruleMap: Record<string, number> = {}
+  for (const r of rulesRes.data ?? []) ruleMap[r.rule_key] = r.points
+  const scoring: ScoringValues = {
+    winner:  ruleMap.correct_winner ?? 3,
+    exact:   ruleMap.correct_exact_score ?? 5,
+    scorer:  ruleMap.correct_scorer ?? 2,
+    assist:  ruleMap.correct_assist ?? 1,
+    penalty: ruleMap.correct_penalty_score ?? 5,
+  }
 
   const predCountMap: Record<string, number> = {}
   for (const pred of predCounts ?? []) {
@@ -92,7 +115,7 @@ export default async function DashboardPage() {
     .eq('status', 'upcoming')
     .order('match_date', { ascending: true })
     .limit(1)
-    .single()
+    .maybeSingle()
 
   const greetingName = profile?.displayName ?? profile?.username ?? 'Campeón'
 
@@ -221,7 +244,7 @@ export default async function DashboardPage() {
               </thead>
               <tbody>
                 {topProfiles.map((p, idx) => {
-                  const isCurrentUser = p.id === user!.id
+                  const isCurrentUser = p.id === user.id
                   const position = String(idx + 1).padStart(2, '0')
                   const predCount = predCountMap[p.id] ?? 0
                   const isTop3 = idx < 3
@@ -297,9 +320,10 @@ export default async function DashboardPage() {
         <div className="md:col-span-12">
           <PointsPanel
             profiles={allProfiles}
-            predictions={(scoredPreds ?? []) as any}
+            predictions={(scoredPreds ?? []) as unknown as ScoredPrediction[]}
             matchEvents={matchEvents ?? []}
-            currentUserId={user!.id}
+            currentUserId={user.id}
+            scoring={scoring}
           />
         </div>
 

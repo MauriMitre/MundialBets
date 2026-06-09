@@ -28,7 +28,7 @@ export default function TeamsManager({ teams }: { teams: Team[] }) {
       const { error: err } = await supabase.from('teams').update({
         name: form.get('name') as string,
         code: (form.get('code') as string).toUpperCase(),
-        group_name: (form.get('group_name') as string) || null,
+        group_name: ((form.get('group_name') as string) || '').trim().toUpperCase() || null,
         flag_url: (form.get('flag_url') as string) || null,
       }).eq('id', id)
 

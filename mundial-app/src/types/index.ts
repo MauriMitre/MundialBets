@@ -57,13 +57,15 @@ export interface MatchEvent {
   player?: Player
 }
 
+// Refleja la fila de Supabase tal cual (snake_case): los layouts pasan
+// la fila cruda a los componentes de navegación sin mapearla
 export interface Profile {
   id: string
   username: string
-  displayName: string | null
-  avatarUrl: string | null
-  isAdmin: boolean
-  totalPoints: number
+  display_name: string | null
+  avatar_url: string | null
+  is_admin: boolean
+  total_points: number
 }
 
 export interface Prediction {
