@@ -21,7 +21,9 @@
       "Bash(git commit:*)",
       "Bash(git push:*)",
       "Bash(git -C /e/Mauricio/Mundial/mundial-app check-ignore .env .env.local)",
-      "Bash(npx eslint *)"
+      "Bash(npx eslint *)",
+      "WebFetch(domain:www.independentespanol.com)",
+      "Bash(node -e ' *)"
     ]
   }
 }

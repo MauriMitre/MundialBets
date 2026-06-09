@@ -56,7 +56,7 @@ CROSS JOIN (VALUES
   ('Marquinhos',          'DEF',  4),
   ('Gabriel Magalhães',   'DEF',  5),
   ('Alex Sandro',         'DEF',  6),
-  ('Renan Lodi',          'DEF', 18),
+  ('Renan Lodi',          'DEF', NULL), -- dorsal duplicado (#18)
   ('Bremer',              'DEF', 14),
   ('Guilherme Arana',     'DEF', 25),
   ('Casemiro',            'MID', 15),
@@ -68,7 +68,7 @@ CROSS JOIN (VALUES
   ('Joelinton',           'MID', 11),
   ('Andreas Pereira',     'MID', 18),
   ('Vinicius Jr',         'FWD',  7),
-  ('Raphinha',            'FWD', 11),
+  ('Raphinha',            'FWD', NULL), -- dorsal duplicado (#11)
   ('Rodrygo',             'FWD', 21),
   ('Gabriel Martinelli',  'FWD', 24),
   ('Gabriel Jesus',       'FWD',  9),
@@ -134,7 +134,7 @@ CROSS JOIN (VALUES
   ('İlkay Gündoğan',       'MID', 21),
   ('Leon Goretzka',        'MID',  8),
   ('Florian Wirtz',        'MID', 10),
-  ('Jamal Musiala',        'MID', 14),
+  ('Jamal Musiala',        'MID', NULL), -- dorsal duplicado (#14)
   ('Kai Havertz',          'MID',  7),
   ('Pascal Groß',          'MID', 15),
   ('Robert Andrich',       'MID', 23),
@@ -162,7 +162,7 @@ CROSS JOIN (VALUES
   ('Dani Carvajal',       'DEF',  2),
   ('Nacho Fernández',     'DEF',  4),
   ('Aymeric Laporte',     'DEF', 14),
-  ('Robin Le Normand',    'DEF', 24),
+  ('Robin Le Normand',    'DEF', NULL), -- dorsal duplicado (#24)
   ('Marc Cucurella',      'DEF', 24),
   ('Alejandro Grimaldo',  'DEF', 22),
   ('Dani Vivian',         'DEF', 18),
@@ -176,11 +176,11 @@ CROSS JOIN (VALUES
   ('Dani Olmo',           'MID', 10),
   ('Álex Baena',          'MID', 21),
   ('Álvaro Morata',       'FWD',  7),
-  ('Ferran Torres',       'FWD',  7),
+  ('Ferran Torres',       'FWD',  NULL), -- dorsal duplicado (#7)
   ('Nico Williams',       'FWD', 17),
   ('Lamine Yamal',        'FWD', 19),
-  ('Joselu',              'FWD',  9),
-  ('Ayoze Pérez',         'FWD', 13),
+  ('Joselu',              'FWD',  NULL), -- dorsal duplicado (#9)
+  ('Ayoze Pérez',         'FWD', NULL), -- dorsal duplicado (#13)
   ('Bryan Gil',           'FWD', 26)
 ) AS v(name, position, shirt_number)
 WHERE t.code = 'ESP';
@@ -207,7 +207,7 @@ CROSS JOIN (VALUES
   ('Bernardo Silva',       'MID', 10),
   ('Vitinha',              'MID', 16),
   ('João Palhinha',        'MID',  26),
-  ('Rúben Neves',          'MID', 15),
+  ('Rúben Neves',          'MID', NULL), -- dorsal duplicado (#15)
   ('Otávio',               'MID', 13),
   ('João Neves',           'MID', 18),
   ('Matheus Nunes',        'MID', 17),
@@ -266,14 +266,14 @@ FROM teams t
 CROSS JOIN (VALUES
   ('Bart Verbruggen',      'GK',  23),
   ('Mark Flekken',         'GK',   1),
-  ('Remko Pasveer',        'GK',  22),
+  ('Remko Pasveer',        'GK',  NULL), -- dorsal duplicado (#22)
   ('Denzel Dumfries',      'DEF', 22),
   ('Stefan de Vrij',       'DEF',  6),
   ('Virgil van Dijk',      'DEF',  4),
   ('Nathan Aké',           'DEF',  5),
   ('Matthijs de Ligt',     'DEF',  3),
   ('Jurriën Timber',       'DEF', 12),
-  ('Ian Maatsen',          'DEF', 18),
+  ('Ian Maatsen',          'DEF', NULL), -- dorsal duplicado (#18)
   ('Lutsharel Geertruida', 'DEF', 24),
   ('Frenkie de Jong',      'MID', 21),
   ('Ryan Gravenberch',     'MID', 10),
@@ -307,7 +307,7 @@ CROSS JOIN (VALUES
   ('Alessandro Bastoni',   'DEF', 23),
   ('Giorgio Scalvini',     'DEF', 19),
   ('Federico Dimarco',     'DEF',  3),
-  ('Matteo Darmian',       'DEF', 18),
+  ('Matteo Darmian',       'DEF', NULL), -- dorsal duplicado (#18)
   ('Gianluca Mancini',     'DEF', 15),
   ('Riccardo Calafiori',   'DEF', 16),
   ('Alessandro Florenzi',  'DEF', 24),
@@ -341,7 +341,7 @@ CROSS JOIN (VALUES
   ('Koen Casteels',        'GK',  23),
   ('Timothy Castagne',     'DEF',  2),
   ('Zeno Debast',          'DEF',  3),
-  ('Wout Faes',            'DEF',  5),
+  ('Wout Faes',            'DEF',  NULL), -- dorsal duplicado (#5)
   ('Arthur Theate',        'DEF', 17),
   ('Thomas Meunier',       'DEF', 15),
   ('Maxim De Cuyper',      'DEF', 22),
@@ -392,7 +392,7 @@ CROSS JOIN (VALUES
   ('Martin Baturina',      'MID', 18),
   ('Nikola Moro',          'MID', 19),
   ('Andrej Kramarić',      'FWD', 16),
-  ('Ivan Perišić',         'FWD',  4),
+  ('Ivan Perišić',         'FWD',  NULL), -- dorsal duplicado (#4)
   ('Bruno Petković',       'FWD', 21),
   ('Marko Livaja',         'FWD', 17),
   ('Mislav Oršić',         'FWD', 13),
@@ -419,7 +419,7 @@ CROSS JOIN (VALUES
   ('Joe Scally',            'DEF', 24),
   ('Mark McKenzie',         'DEF', 16),
   ('Tim Ream',              'DEF',  4),
-  ('Tyler Adams',           'MID',  4),
+  ('Tyler Adams',           'MID',  NULL), -- dorsal duplicado (#4)
   ('Weston McKennie',       'MID',  8),
   ('Yunus Musah',           'MID', 18),
   ('Brenden Aaronson',      'MID', 11),
@@ -431,7 +431,7 @@ CROSS JOIN (VALUES
   ('Ricardo Pepi',          'FWD',  9),
   ('Josh Sargent',          'FWD', 21),
   ('Jordan Morris',         'FWD',  7),
-  ('Tim Weah',              'FWD', 21),
+  ('Tim Weah',              'FWD', NULL), -- dorsal duplicado (#21)
   ('Folarin Balogun',       'FWD', 14),
   ('Jesus Ferreira',        'FWD', 17)
 ) AS v(name, position, shirt_number)
@@ -446,7 +446,7 @@ FROM teams t
 CROSS JOIN (VALUES
   ('Guillermo Ochoa',      'GK',  13),
   ('Luis Malagón',         'GK',   1),
-  ('Rodolfo Cota',         'GK',  22),
+  ('Rodolfo Cota',         'GK',  NULL), -- dorsal duplicado (#22)
   ('Héctor Moreno',        'DEF',  3),
   ('César Montes',         'DEF',  4),
   ('Johan Vásquez',        'DEF',  24),
@@ -492,7 +492,7 @@ CROSS JOIN (VALUES
   ('Doneil Henry',         'DEF', 14),
   ('Joel Waterman',        'DEF', 23),
   ('Atiba Hutchinson',     'MID',  6),
-  ('Stephen Eustáquio',    'MID', 18),
+  ('Stephen Eustáquio',    'MID', NULL), -- dorsal duplicado (#18)
   ('Tajon Buchanan',       'MID', 11),
   ('Mark-Anthony Kaye',    'MID', 16),
   ('Ismael Koné',          'MID', 25),
@@ -501,7 +501,7 @@ CROSS JOIN (VALUES
   ('Charles-Andreas Brym', 'MID', 17),
   ('Alphonso Davies',      'FWD', 19),
   ('Jonathan David',       'FWD',  9),
-  ('Cyle Larin',           'FWD', 17),
+  ('Cyle Larin',           'FWD', NULL), -- dorsal duplicado (#17)
   ('Lucas Cavallini',      'FWD', 21),
   ('Theo Bair',            'FWD', 24),
   ('Junior Hoilett',       'FWD', 10),
@@ -626,7 +626,7 @@ FROM teams t
 CROSS JOIN (VALUES
   ('Pedro Gallese',        'GK',   1),
   ('Carlos Cáceda',        'GK',  12),
-  ('José Carvallo',        'GK',  22),
+  ('José Carvallo',        'GK',  NULL), -- dorsal duplicado (#22)
   ('Luis Advíncula',       'DEF', 17),
   ('Alexander Callens',    'DEF',  2),
   ('Carlos Zambrano',      'DEF',  3),

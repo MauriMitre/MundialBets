@@ -18,6 +18,7 @@ const ISO2: Record<string, string> = {
   RSA: 'za', ZIM: 'zw', ANG: 'ao', MOZ: 'mz', TAN: 'tz',
   HON: 'hn', GTM: 'gt', CRC: 'cr', PAN: 'pa', SLV: 'sv',
   JAM: 'jm', TTO: 'tt', CUB: 'cu', DOM: 'do', HAI: 'ht',
+  BIH: 'ba', CUW: 'cw', CPV: 'cv', ALG: 'dz', COD: 'cd', UZB: 'uz',
 }
 
 /**
