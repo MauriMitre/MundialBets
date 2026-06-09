@@ -227,7 +227,7 @@ export default function PredictionForm({ match, players, existing, readonly, use
               { value: 'away', label: match.awayTeam.name },
             ]
         return (
-          <div className="bg-surface-container-low rounded-xl p-6">
+          <div className="bg-surface-container-low rounded-xl p-4 sm:p-6">
             <div className="flex items-center justify-between mb-1">
               <h3 className="font-headline font-bold text-on-surface uppercase tracking-wide text-sm">
                 ¿Quién gana?
@@ -272,7 +272,7 @@ export default function PredictionForm({ match, players, existing, readonly, use
       })()}
 
       {/* Resultado exacto */}
-      <div className="bg-surface-container-low rounded-xl p-6">
+      <div className="bg-surface-container-low rounded-xl p-4 sm:p-6">
         <h3 className="font-headline font-bold text-on-surface mb-1 uppercase tracking-wide text-sm">
           Resultado exacto
         </h3>
@@ -312,7 +312,7 @@ export default function PredictionForm({ match, players, existing, readonly, use
 
       {/* Goleadores */}
       {players.length > 0 && (
-        <div className="bg-surface-container-low rounded-xl p-6">
+        <div className="bg-surface-container-low rounded-xl p-4 sm:p-6">
           <div className="flex items-start justify-between mb-1">
             <h3 className="font-headline font-bold text-on-surface uppercase tracking-wide text-sm">
               Goleadores
@@ -358,7 +358,7 @@ export default function PredictionForm({ match, players, existing, readonly, use
 
       {/* Asistentes */}
       {players.length > 0 && (
-        <div className="bg-surface-container-low rounded-xl p-6">
+        <div className="bg-surface-container-low rounded-xl p-4 sm:p-6">
           <div className="flex items-start justify-between mb-1">
             <h3 className="font-headline font-bold text-on-surface uppercase tracking-wide text-sm">
               Asistentes
@@ -402,7 +402,7 @@ export default function PredictionForm({ match, players, existing, readonly, use
 
       {/* Penales — solo en fases eliminatorias */}
       {isKnockout && (
-        <div className="bg-surface-container-low rounded-xl p-6">
+        <div className="bg-surface-container-low rounded-xl p-4 sm:p-6">
           <h3 className="font-headline font-bold text-on-surface uppercase tracking-wide text-sm mb-1">
             Resultado de penales
           </h3>

@@ -132,6 +132,15 @@
 /* ─── Base ──────────────────────────────────────────────── */
 * { box-sizing: border-box; }
 
+/* Los blobs decorativos con posiciones negativas (-right-20, etc.)
+   desbordan horizontalmente: en móvil el navegador expande el layout
+   viewport y la barra de navegación fija queda más ancha que la
+   pantalla (se corta el último ítem). Clip evita el scroll lateral. */
+html, body {
+  overflow-x: hidden; /* fallback para navegadores sin clip */
+  overflow-x: clip;
+}
+
 body {
   background-color: #131313;
   color: #e5e2e1;

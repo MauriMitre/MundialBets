@@ -23,7 +23,7 @@ export default function TopNavbar({ profile }: { profile: Profile | null }) {
 
   return (
     <nav
-      className="fixed top-0 w-full z-50 flex justify-between items-center px-6 h-20 bg-[#131313] stadium-shadow font-headline tracking-tight"
+      className="fixed top-0 w-full z-50 flex justify-between items-center px-4 sm:px-6 h-20 bg-[#131313] stadium-shadow font-headline tracking-tight"
     >
       {/* Logo */}
       <Link href="/dashboard" className="text-2xl font-bold tracking-tighter text-secondary">
@@ -53,13 +53,16 @@ export default function TopNavbar({ profile }: { profile: Profile | null }) {
       {/* User avatar */}
       <div className="flex items-center gap-3">
         {profile && (
-          <span className="hidden sm:block text-sm text-on-surface-variant font-label">
+          <span className="text-sm text-on-surface-variant font-label">
             {profile.total_points ?? 0} <span className="text-primary font-bold">pts</span>
           </span>
         )}
-        <div className="w-10 h-10 rounded-full bg-surface-container-high border border-outline-variant/30 flex items-center justify-center overflow-hidden">
+        <Link
+          href="/profile"
+          className="w-10 h-10 rounded-full bg-surface-container-high border border-outline-variant/30 flex items-center justify-center overflow-hidden"
+        >
           <span className="text-sm font-headline font-bold text-primary">{initial}</span>
-        </div>
+        </Link>
       </div>
     </nav>
   )

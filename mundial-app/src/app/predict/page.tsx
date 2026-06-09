@@ -74,7 +74,7 @@ export default async function PredictPage() {
       {/* Header */}
       <div className="mb-12 relative">
         <div className="absolute -top-10 -left-10 w-64 h-64 bg-primary/5 rounded-full blur-[100px] pointer-events-none" />
-        <h1 className="font-headline text-5xl md:text-7xl font-bold tracking-tighter text-on-surface mb-4 uppercase">
+        <h1 className="font-headline text-4xl sm:text-5xl md:text-7xl font-bold tracking-tighter text-on-surface mb-4 uppercase">
           Predecí &amp; <span className="text-primary">Conquistá</span>
         </h1>
         <p className="font-body text-on-surface-variant max-w-2xl text-lg">
@@ -187,7 +187,7 @@ function MatchCard({ match, predicted }: { match: any; predicted: boolean }) {
 
   return (
     <div
-      className={`group relative bg-surface-container-low rounded-2xl p-8 transition-all duration-300 hover:bg-surface-container overflow-hidden${isFinished ? ' opacity-60' : ''}`}
+      className={`group relative bg-surface-container-low rounded-2xl p-5 sm:p-8 transition-all duration-300 hover:bg-surface-container overflow-hidden${isFinished ? ' opacity-60' : ''}`}
     >
       {/* Status badge top-right */}
       {isLive && (
@@ -231,15 +231,15 @@ function MatchCard({ match, predicted }: { match: any; predicted: boolean }) {
       </p>
 
       {/* Teams */}
-      <div className="flex justify-between items-center px-4 mt-4">
+      <div className="flex justify-between items-center px-0 sm:px-4 mt-4">
         {/* Home Team */}
-        <div className="flex flex-col items-center gap-4 w-28 text-center">
+        <div className="flex flex-col items-center gap-4 w-24 sm:w-28 text-center">
           <div className="w-16 h-16 rounded-full bg-surface-container-highest overflow-hidden flex items-center justify-center shadow-2xl">
             {flagUrl(match.homeTeam.code)
               ? <img src={flagUrl(match.homeTeam.code, 80)} alt={match.homeTeam.code} className="w-full h-full object-cover" />
               : <span className="text-3xl">{match.homeTeam.code}</span>}
           </div>
-          <span className="font-headline text-base font-bold tracking-tight uppercase text-on-surface">
+          <span className="font-headline text-sm sm:text-base font-bold tracking-tight uppercase text-on-surface">
             {match.homeTeam.name}
           </span>
         </div>
@@ -259,13 +259,13 @@ function MatchCard({ match, predicted }: { match: any; predicted: boolean }) {
         </div>
 
         {/* Away Team */}
-        <div className="flex flex-col items-center gap-4 w-28 text-center">
+        <div className="flex flex-col items-center gap-4 w-24 sm:w-28 text-center">
           <div className="w-16 h-16 rounded-full bg-surface-container-highest overflow-hidden flex items-center justify-center shadow-2xl">
             {flagUrl(match.awayTeam.code)
               ? <img src={flagUrl(match.awayTeam.code, 80)} alt={match.awayTeam.code} className="w-full h-full object-cover" />
               : <span className="text-3xl">{match.awayTeam.code}</span>}
           </div>
-          <span className="font-headline text-base font-bold tracking-tight uppercase text-on-surface">
+          <span className="font-headline text-sm sm:text-base font-bold tracking-tight uppercase text-on-surface">
             {match.awayTeam.name}
           </span>
         </div>

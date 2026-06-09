@@ -91,7 +91,7 @@ export default async function HistoryPage() {
 
       {/* Stats resumen */}
       {finished.length > 0 && (
-        <div className="grid grid-cols-4 gap-3 mb-8">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
           <StatBox label="Predicciones" value={preds.length} />
           <StatBox label="Finalizadas" value={finished.length} />
           <StatBox label="Pts ganados" value={totalPoints} highlight />

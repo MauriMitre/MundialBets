@@ -70,7 +70,7 @@ export default async function LeaderboardPage({
           <span className="absolute -top-10 -left-4 text-8xl font-headline font-black text-white/[0.03] select-none pointer-events-none">
             STATS
           </span>
-          <h1 className="text-5xl font-headline font-bold text-secondary leading-none">
+          <h1 className="text-4xl sm:text-5xl font-headline font-bold text-secondary leading-none">
             The Standings
           </h1>
           <p className="text-on-surface-variant font-label text-sm mt-4 tracking-widest uppercase">
@@ -192,9 +192,9 @@ export default async function LeaderboardPage({
           <table className="w-full">
             <thead>
               <tr className="text-on-surface-variant text-[10px] uppercase tracking-[0.2em] font-label border-b border-outline-variant/10">
-                <th className="py-4 px-6 text-left">Pos</th>
-                <th className="py-4 px-6 text-left">Jugador</th>
-                <th className="py-4 px-6 text-right">Puntos</th>
+                <th className="py-4 px-3 sm:px-6 text-left">Pos</th>
+                <th className="py-4 px-3 sm:px-6 text-left">Jugador</th>
+                <th className="py-4 px-3 sm:px-6 text-right">Puntos</th>
               </tr>
             </thead>
             <tbody>
@@ -212,12 +212,12 @@ export default async function LeaderboardPage({
                         : 'hover:bg-surface-container-highest transition-colors border-l-4 border-transparent'
                     }
                   >
-                    <td className="py-4 px-6">
+                    <td className="py-4 px-3 sm:px-6">
                       <span className="font-headline font-bold text-on-surface-variant/40 text-lg">
                         {paddedRank}
                       </span>
                     </td>
-                    <td className="py-4 px-6">
+                    <td className="py-4 px-3 sm:px-6">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center shrink-0">
                           <span className="text-xs font-bold text-on-surface-variant">
@@ -232,7 +232,7 @@ export default async function LeaderboardPage({
                         </span>
                       </div>
                     </td>
-                    <td className="py-4 px-6 text-right">
+                    <td className="py-4 px-3 sm:px-6 text-right">
                       <span className="font-headline font-bold text-on-surface">
                         {profile.total_points}
                       </span>
@@ -261,7 +261,7 @@ export default async function LeaderboardPage({
           <h3 className="font-label text-xs uppercase tracking-widest text-on-surface-variant mb-6">
             Tu Rendimiento
           </h3>
-          <div className="flex gap-8">
+          <div className="flex flex-wrap gap-8">
             {topPercent !== null && (
               <div>
                 <div className="font-headline text-4xl font-bold text-primary">

@@ -127,7 +127,7 @@ export default async function DashboardPage() {
 
       {/* Welcome Header */}
       <header className="mb-10">
-        <h1 className="font-headline text-5xl md:text-6xl font-bold tracking-tighter text-on-surface">
+        <h1 className="font-headline text-4xl sm:text-5xl md:text-6xl font-bold tracking-tighter text-on-surface">
           ¡Hola, {greetingName}!
         </h1>
         <p className="font-label text-primary uppercase tracking-[0.3em] text-sm mt-2">
@@ -139,7 +139,7 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
 
         {/* Points Card */}
-        <div className="md:col-span-5 bg-surface-container-low rounded-xl p-8 relative overflow-hidden flex flex-col justify-between min-h-[220px]">
+        <div className="md:col-span-5 bg-surface-container-low rounded-xl p-6 sm:p-8 relative overflow-hidden flex flex-col justify-between min-h-[220px]">
           <div className="absolute -top-10 -right-10 opacity-5 font-headline text-[180px] leading-none select-none pointer-events-none">
             {userPoints}
           </div>
@@ -148,7 +148,7 @@ export default async function DashboardPage() {
               Puntos Totales
             </h3>
             <div className="flex items-baseline gap-2">
-              <span className="font-headline text-8xl font-black text-primary">
+              <span className="font-headline text-7xl sm:text-8xl font-black text-primary">
                 {userPoints}
               </span>
               <span className="font-headline text-2xl text-on-surface-variant/50">PTS</span>
@@ -165,7 +165,7 @@ export default async function DashboardPage() {
         </div>
 
         {/* Next Match Card */}
-        <div className="md:col-span-7 bg-surface-container-high rounded-xl p-8 relative overflow-hidden flex flex-col justify-center border border-outline-variant/5">
+        <div className="md:col-span-7 bg-surface-container-high rounded-xl p-6 sm:p-8 relative overflow-hidden flex flex-col justify-center border border-outline-variant/5">
           <div className="absolute top-6 right-8">
             <div className="bg-error/20 text-error flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest">
               <span className="w-1.5 h-1.5 rounded-full bg-error animate-pulse"></span>
@@ -214,8 +214,8 @@ export default async function DashboardPage() {
         </div>
 
         {/* Friends Leaderboard + Points Panel */}
-        <div className="md:col-span-12 bg-surface-container-low rounded-xl p-8">
-          <div className="flex justify-between items-end mb-8 px-4">
+        <div className="md:col-span-12 bg-surface-container-low rounded-xl p-4 sm:p-8">
+          <div className="flex justify-between items-end mb-8 px-1 sm:px-4">
             <div>
               <h3 className="font-headline text-2xl font-bold tracking-tight text-on-surface">
                 Top 5 Amigos
@@ -236,10 +236,10 @@ export default async function DashboardPage() {
             <table className="w-full text-left">
               <thead>
                 <tr className="text-on-surface-variant text-[10px] uppercase tracking-[0.2em] font-label">
-                  <th className="pb-4 px-4">Posición</th>
-                  <th className="pb-4 px-4">Usuario</th>
-                  <th className="pb-4 px-4">Pronósticos</th>
-                  <th className="pb-4 px-4 text-right">Puntos</th>
+                  <th className="pb-4 px-2 sm:px-4">Pos</th>
+                  <th className="pb-4 px-2 sm:px-4">Usuario</th>
+                  <th className="pb-4 px-2 sm:px-4 hidden sm:table-cell">Pronósticos</th>
+                  <th className="pb-4 px-2 sm:px-4 text-right">Puntos</th>
                 </tr>
               </thead>
               <tbody>
@@ -261,7 +261,7 @@ export default async function DashboardPage() {
                           : 'hover:bg-surface-container-highest',
                       ].join(' ')}
                     >
-                      <td className="py-4 px-4 relative">
+                      <td className="py-4 px-2 sm:px-4 relative">
                         {isTop3 && (
                           <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-secondary-container rounded-r" />
                         )}
@@ -274,7 +274,7 @@ export default async function DashboardPage() {
                           {position}
                         </span>
                       </td>
-                      <td className="py-4 px-4">
+                      <td className="py-4 px-2 sm:px-4">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center shrink-0">
                             <span className="text-xs font-bold text-primary">{initial}</span>
@@ -289,12 +289,12 @@ export default async function DashboardPage() {
                           </span>
                         </div>
                       </td>
-                      <td className="py-4 px-4">
+                      <td className="py-4 px-2 sm:px-4 hidden sm:table-cell">
                         <span className="text-xs text-on-surface-variant">
                           {predCount} pronósticos
                         </span>
                       </td>
-                      <td className="py-4 px-4 text-right">
+                      <td className="py-4 px-2 sm:px-4 text-right">
                         <span
                           className={[
                             'font-headline font-bold',

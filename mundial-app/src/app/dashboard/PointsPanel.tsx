@@ -104,9 +104,9 @@ export default function PointsPanel({
   const selectedProfile = profiles.find(p => p.id === selectedId)
 
   return (
-    <div className="bg-surface-container-low rounded-xl p-8">
+    <div className="bg-surface-container-low rounded-xl p-4 sm:p-8">
       {/* Header */}
-      <div className="flex items-end justify-between mb-8 px-4">
+      <div className="flex items-end justify-between mb-8 px-1 sm:px-4">
         <div>
           <h3 className="font-headline text-2xl font-bold tracking-tight text-on-surface">
             Historial de Puntos
@@ -118,7 +118,7 @@ export default function PointsPanel({
       </div>
 
       {/* Tabs / selector de jugador */}
-      <div className="flex gap-2 overflow-x-auto pb-2 mb-6 px-4">
+      <div className="flex gap-2 overflow-x-auto pb-2 mb-6 px-1 sm:px-4">
         {profiles.map(p => {
           const name = p.displayName ?? p.username
           const initial = name.charAt(0).toUpperCase()
@@ -146,7 +146,7 @@ export default function PointsPanel({
 
       {/* Resumen del jugador seleccionado */}
       {selectedProfile && userPreds.length > 0 && (
-        <div className="flex items-center gap-4 px-4 mb-6 pb-6 border-b border-outline-variant/10">
+        <div className="flex items-center gap-4 px-1 sm:px-4 mb-6 pb-6 border-b border-outline-variant/10">
           <div className="flex-1">
             <p className="text-on-surface-variant text-xs font-label uppercase tracking-widest">
               {userPreds.length} partido{userPreds.length !== 1 ? 's' : ''} con puntos
@@ -160,7 +160,7 @@ export default function PointsPanel({
       )}
 
       {/* Lista de predicciones con puntos */}
-      <div className="space-y-3 px-4">
+      <div className="space-y-3 px-1 sm:px-4">
         {userPreds.length === 0 ? (
           <p className="text-on-surface-variant/30 text-sm text-center py-8 font-label">
             {selectedProfile?.displayName ?? selectedProfile?.username} aún no sumó puntos

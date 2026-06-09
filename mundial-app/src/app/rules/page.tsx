@@ -7,7 +7,7 @@ export default function RulesPage() {
       {/* Hero */}
       <section className="mb-16 relative">
         <div className="absolute -top-20 -right-20 w-96 h-96 bg-primary/10 blur-[120px] rounded-full pointer-events-none" />
-        <h1 className="font-headline text-6xl md:text-8xl font-bold tracking-tighter text-on-surface mb-4">
+        <h1 className="font-headline text-5xl sm:text-6xl md:text-8xl font-bold tracking-tighter text-on-surface mb-4">
           EL <span className="text-primary text-glow">SISTEMA</span><br />
           DE PUNTOS
         </h1>
@@ -20,7 +20,7 @@ export default function RulesPage() {
       <section className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
 
         {/* Ganador */}
-        <div className="glass-card rounded-xl p-8 border-l-4 border-secondary-container relative overflow-hidden">
+        <div className="glass-card rounded-xl p-6 sm:p-8 border-l-4 border-secondary-container relative overflow-hidden">
           <div className="flex justify-between items-start mb-8">
             <span className="text-4xl">🏆</span>
             <div className="bg-secondary-container/20 text-secondary-container font-headline text-3xl font-bold px-4 py-2 rounded-lg">
@@ -34,7 +34,7 @@ export default function RulesPage() {
         </div>
 
         {/* Resultado Exacto */}
-        <div className="glass-card rounded-xl p-8 border-l-4 border-primary relative overflow-hidden">
+        <div className="glass-card rounded-xl p-6 sm:p-8 border-l-4 border-primary relative overflow-hidden">
           <div className="flex justify-between items-start mb-8">
             <span className="text-4xl">🎯</span>
             <div className="bg-primary/20 text-primary font-headline text-3xl font-bold px-4 py-2 rounded-lg">
@@ -48,7 +48,7 @@ export default function RulesPage() {
         </div>
 
         {/* Goleador */}
-        <div className="glass-card rounded-xl p-8 border-l-4 border-yellow-500/60 relative overflow-hidden">
+        <div className="glass-card rounded-xl p-6 sm:p-8 border-l-4 border-yellow-500/60 relative overflow-hidden">
           <div className="flex justify-between items-start mb-8">
             <span className="text-4xl">⚽</span>
             <div className="bg-yellow-500/10 text-yellow-400 font-headline text-3xl font-bold px-4 py-2 rounded-lg">
@@ -62,7 +62,7 @@ export default function RulesPage() {
         </div>
 
         {/* Asistente */}
-        <div className="glass-card rounded-xl p-8 border-l-4 border-purple-400/60 relative overflow-hidden">
+        <div className="glass-card rounded-xl p-6 sm:p-8 border-l-4 border-purple-400/60 relative overflow-hidden">
           <div className="flex justify-between items-start mb-8">
             <span className="text-4xl">🎯</span>
             <div className="bg-purple-400/10 text-purple-400 font-headline text-3xl font-bold px-4 py-2 rounded-lg">
@@ -76,7 +76,7 @@ export default function RulesPage() {
         </div>
 
         {/* Penales */}
-        <div className="glass-card rounded-xl p-8 border-l-4 border-orange-400/60 relative overflow-hidden md:col-span-2">
+        <div className="glass-card rounded-xl p-6 sm:p-8 border-l-4 border-orange-400/60 relative overflow-hidden md:col-span-2">
           <div className="flex justify-between items-start mb-8">
             <span className="text-4xl">🥅</span>
             <div className="bg-orange-400/10 text-orange-400 font-headline text-3xl font-bold px-4 py-2 rounded-lg">
@@ -93,7 +93,7 @@ export default function RulesPage() {
 
       {/* Ejemplo práctico */}
       <section className="mb-12">
-        <div className="glass-card rounded-xl p-8 border border-primary/20" style={{ background: 'rgba(136,217,130,0.04)' }}>
+        <div className="glass-card rounded-xl p-6 sm:p-8 border border-primary/20" style={{ background: 'rgba(136,217,130,0.04)' }}>
           <div className="flex items-center gap-2 mb-6">
             <span className="bg-primary/20 text-primary text-[10px] font-label font-bold uppercase tracking-widest px-3 py-1 rounded-full">
               Ejemplo
