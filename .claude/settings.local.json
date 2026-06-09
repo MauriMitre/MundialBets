@@ -23,7 +23,10 @@
       "Bash(git -C /e/Mauricio/Mundial/mundial-app check-ignore .env .env.local)",
       "Bash(npx eslint *)",
       "WebFetch(domain:www.independentespanol.com)",
-      "Bash(node -e ' *)"
+      "Bash(node -e ' *)",
+      "WebFetch(domain:en.wikipedia.org)",
+      "WebSearch",
+      "Bash(awk ' *)"
     ]
   }
 }
