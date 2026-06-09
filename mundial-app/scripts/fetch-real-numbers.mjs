@@ -58,7 +58,17 @@ for (const line of wiki.split('\n')) {
 // 2) BD
 const s = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
 const { data: dbTeams } = await s.from('teams').select('id, code, name')
-const { data: dbPlayers } = await s.from('players').select('id, name, team_id')
+// Paginar: Supabase devuelve máximo 1000 filas por request
+const dbPlayers = []
+for (let from = 0; ; from += 1000) {
+  const { data: page, error } = await s.from('players')
+    .select('id, name, team_id')
+    .order('id')
+    .range(from, from + 999)
+  if (error) { console.error(error.message); process.exit(1) }
+  dbPlayers.push(...page)
+  if (page.length < 1000) break
+}
 const teamByCode = Object.fromEntries(dbTeams.map(t => [t.code, t]))
 
 // 3) Matching por equipo
