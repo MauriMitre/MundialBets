@@ -33,12 +33,33 @@ interface Props {
 type Mode = 'goal' | 'assist'
 
 // Orden de líneas en la cancha, de arriba (ataque) a abajo (arco)
-const LINES: { key: string; label: string }[] = [
-  { key: 'FWD', label: 'Delanteros' },
-  { key: 'MID', label: 'Mediocampo' },
-  { key: 'DEF', label: 'Defensa' },
-  { key: 'GK',  label: 'Arquero' },
-]
+const LINE_ORDER = ['FWD', 'MID', 'DEF', 'GK'] as const
+
+// Arma un 11 inicial (4-3-3 por defecto) tomando los dorsales más bajos
+// de cada línea; si una línea no alcanza, se completa desde las otras.
+function pickEleven(byLine: Record<string, PitchPlayer[]>) {
+  const xi: Record<string, PitchPlayer[]> = {
+    GK:  byLine.GK.slice(0, 1),
+    DEF: byLine.DEF.slice(0, 4),
+    MID: byLine.MID.slice(0, 3),
+    FWD: byLine.FWD.slice(0, 3),
+  }
+  const caps: Record<string, number> = { GK: 1, DEF: 5, MID: 5, FWD: 4 }
+  let total = Object.values(xi).reduce((n, l) => n + l.length, 0)
+  let progress = true
+  while (total < 11 && progress) {
+    progress = false
+    for (const line of ['MID', 'DEF', 'FWD']) {
+      if (total >= 11) break
+      if (xi[line].length < caps[line] && byLine[line].length > xi[line].length) {
+        xi[line] = byLine[line].slice(0, xi[line].length + 1)
+        total++
+        progress = true
+      }
+    }
+  }
+  return xi
+}
 
 export default function PitchSelector({
   homeTeam,
@@ -178,55 +199,83 @@ function Pitch({
     line.sort((a, b) => (a.shirt_number ?? 99) - (b.shirt_number ?? 99))
   }
 
+  const xi = pickEleven(byLine)
+  const onPitch = new Set(Object.values(xi).flat().map(p => p.id))
+  // Banco: arqueros suplentes primero, después por línea y dorsal
+  const bench = LINE_ORDER.slice().reverse()
+    .flatMap(line => byLine[line].filter(p => !onPitch.has(p.id)))
+
+  const chipProps = {
+    mode, canAddGoal, canAddAssist, readonly,
+    onIncrementScorer, onDecrementScorer, onToggleAssister,
+  }
+
   return (
-    <div
-      className="relative rounded-xl overflow-hidden border border-white/10"
-      style={{
-        background:
-          'repeating-linear-gradient(0deg, #0d2e16 0px, #0d2e16 44px, #11381c 44px, #11381c 88px)',
-      }}
-    >
-      {/* Marcas de la cancha */}
-      <div className="absolute inset-x-0 top-0 h-16 pointer-events-none">
-        {/* semicírculo central (mitad de cancha arriba) */}
-        <div className="absolute left-1/2 -translate-x-1/2 -top-10 w-24 h-20 rounded-full border border-white/15" />
-        <div className="absolute inset-x-0 top-0 border-t-2 border-white/15" />
+    <div>
+      <div
+        className="relative rounded-t-xl overflow-hidden border border-b-0 border-white/10"
+        style={{
+          background:
+            'repeating-linear-gradient(0deg, #0d2e16 0px, #0d2e16 44px, #11381c 44px, #11381c 88px)',
+        }}
+      >
+        {/* Marcas de la cancha */}
+        <div className="absolute inset-x-0 top-0 h-16 pointer-events-none">
+          {/* semicírculo central (mitad de cancha arriba) */}
+          <div className="absolute left-1/2 -translate-x-1/2 -top-10 w-24 h-20 rounded-full border border-white/15" />
+          <div className="absolute inset-x-0 top-0 border-t-2 border-white/15" />
+        </div>
+        {/* Área penal (abajo, lado del arquero) */}
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-44 h-14 border border-b-0 border-white/15 rounded-t-sm pointer-events-none" />
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-20 h-6 border border-b-0 border-white/15 pointer-events-none" />
+
+        {/* Nombre del equipo */}
+        <p className="relative font-headline font-bold text-xs uppercase tracking-widest text-white/60 text-center pt-3">
+          {team.name}
+        </p>
+
+        {/* 11 inicial en formación */}
+        <div className="relative px-2 pt-3 pb-6 space-y-4">
+          {LINE_ORDER.map(key => {
+            const linePlayers = xi[key]
+            if (linePlayers.length === 0) return null
+            return (
+              <div key={key} className="flex justify-around items-start px-2">
+                {linePlayers.map(p => (
+                  <PlayerChip
+                    key={p.id}
+                    player={p}
+                    goals={scorers[p.id] ?? 0}
+                    assisted={assisters.includes(p.id)}
+                    {...chipProps}
+                  />
+                ))}
+              </div>
+            )
+          })}
+        </div>
       </div>
-      {/* Área penal (abajo, lado del arquero) */}
-      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-44 h-14 border border-b-0 border-white/15 rounded-t-sm pointer-events-none" />
-      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-20 h-6 border border-b-0 border-white/15 pointer-events-none" />
 
-      {/* Nombre del equipo */}
-      <p className="relative font-headline font-bold text-xs uppercase tracking-widest text-white/60 text-center pt-3">
-        {team.name}
-      </p>
-
-      {/* Líneas de jugadores */}
-      <div className="relative px-2 pt-2 pb-5 space-y-3">
-        {LINES.map(({ key }) => {
-          const linePlayers = byLine[key]
-          if (linePlayers.length === 0) return null
-          return (
-            <div key={key} className="flex flex-wrap justify-center gap-x-1.5 gap-y-2">
-              {linePlayers.map(p => (
+      {/* Banco de suplentes */}
+      {bench.length > 0 && (
+        <div className="rounded-b-xl border border-white/10 bg-[#171717] px-2 pb-2">
+          <p className="font-label text-[9px] uppercase tracking-[0.2em] text-white/30 pt-2 pb-1 px-1">
+            Banco de suplentes
+          </p>
+          <div className="flex gap-1.5 overflow-x-auto pt-2.5 pb-1">
+            {bench.map(p => (
+              <div key={p.id} className="shrink-0">
                 <PlayerChip
-                  key={p.id}
                   player={p}
                   goals={scorers[p.id] ?? 0}
                   assisted={assisters.includes(p.id)}
-                  mode={mode}
-                  canAddGoal={canAddGoal}
-                  canAddAssist={canAddAssist}
-                  readonly={readonly}
-                  onIncrementScorer={onIncrementScorer}
-                  onDecrementScorer={onDecrementScorer}
-                  onToggleAssister={onToggleAssister}
+                  {...chipProps}
                 />
-              ))}
-            </div>
-          )
-        })}
-      </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
