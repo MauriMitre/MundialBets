@@ -313,8 +313,14 @@ function PlayerChip({
     else onToggleAssister(player.id)
   }
 
+  // "Nombre Apellido" en dos líneas; nombres de una sola palabra
+  // (Casemiro, Trezeguet) van directo a la línea del apellido
+  const parts = player.name.split(' ')
+  const lastName = parts.pop()
+  const firstName = parts.join(' ')
+
   return (
-    <div className="relative w-[52px]">
+    <div className="relative w-[58px]">
       <button
         type="button"
         disabled={!tappable}
@@ -332,8 +338,11 @@ function PlayerChip({
         >
           {player.shirt_number ?? player.name.charAt(0)}
         </span>
-        <span className="block w-full text-center text-[9px] leading-tight text-white/70 truncate mt-1 font-label">
-          {player.name.split(' ').slice(-1)[0]}
+        <span className="block w-full text-center text-[9px] leading-tight text-white/70 mt-1 font-label">
+          {firstName && (
+            <span className="block truncate text-white/45">{firstName}</span>
+          )}
+          <span className="block truncate">{lastName}</span>
         </span>
       </button>
 
