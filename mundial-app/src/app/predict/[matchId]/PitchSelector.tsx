@@ -262,16 +262,15 @@ function Pitch({
           <p className="font-label text-[9px] uppercase tracking-[0.2em] text-white/30 pt-2 pb-1 px-1">
             Banco de suplentes
           </p>
-          <div className="flex gap-1.5 overflow-x-auto pt-2.5 pb-1">
+          <div className="flex flex-wrap justify-center gap-x-1.5 gap-y-2 pt-2.5 pb-1">
             {bench.map(p => (
-              <div key={p.id} className="shrink-0">
-                <PlayerChip
-                  player={p}
-                  goals={scorers[p.id] ?? 0}
-                  assisted={assisters.includes(p.id)}
-                  {...chipProps}
-                />
-              </div>
+              <PlayerChip
+                key={p.id}
+                player={p}
+                goals={scorers[p.id] ?? 0}
+                assisted={assisters.includes(p.id)}
+                {...chipProps}
+              />
             ))}
           </div>
         </div>
