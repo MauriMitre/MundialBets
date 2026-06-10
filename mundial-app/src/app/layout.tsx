@@ -1,4 +1,4 @@
-import type { Metadata } from "next"
+import type { Metadata, Viewport } from "next"
 import { Space_Grotesk, Plus_Jakarta_Sans, Lexend, Noto_Serif, Inter } from "next/font/google"
 import "./globals.css"
 
@@ -35,6 +35,18 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "El Podio — Predicciones",
   description: "Hacé tus predicciones del Mundial con tus amigos",
+  icons: {
+    apple: "/icon-180.png",
+  },
+  appleWebApp: {
+    capable: true,
+    title: "El Podio",
+    statusBarStyle: "black-translucent",
+  },
+}
+
+export const viewport: Viewport = {
+  themeColor: "#131313",
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

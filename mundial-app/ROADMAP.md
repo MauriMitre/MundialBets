@@ -31,8 +31,6 @@ Supabase pg_cron):
 
 ## 3. Mejoras menores
 
-- **PWA**: `manifest.json` + íconos para instalarla como app en el
-  celular (el 100% del uso es mobile). Esfuerzo muy bajo.
 - **El que más sumó en la jornada**: destacado diario en el dashboard
   con el ganador de la fecha. Da tema de conversación. Esfuerzo bajo.
 - **Bracket visual de eliminatorias** cuando termine la fase de grupos
@@ -40,6 +38,9 @@ Supabase pg_cron):
   Esfuerzo medio. Hay tiempo hasta fin de mes.
 
 ## Hecho
+
+- ~~PWA: manifest + íconos + meta iOS para instalar como app~~
+  (2026-06-09)
 
 - ~~Banner "te faltan N apuestas para hoy" en el dashboard~~
   (2026-06-09)
