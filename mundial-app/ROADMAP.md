@@ -31,8 +31,6 @@ Supabase pg_cron):
 
 ## 3. Mejoras menores
 
-- **Banner "te faltan N apuestas que cierran hoy"** en el dashboard —
-  la gente se olvida de apostar y se enoja después. Esfuerzo muy bajo.
 - **PWA**: `manifest.json` + íconos para instalarla como app en el
   celular (el 100% del uso es mobile). Esfuerzo muy bajo.
 - **El que más sumó en la jornada**: destacado diario en el dashboard
@@ -42,6 +40,9 @@ Supabase pg_cron):
   Esfuerzo medio. Hay tiempo hasta fin de mes.
 
 ## Hecho
+
+- ~~Banner "te faltan N apuestas para hoy" en el dashboard~~
+  (2026-06-09)
 
 - ~~Predicciones de torneo: campeón +25, subcampeón +15, Botín de Oro
   +20. Página /tournament, cierre por RLS al primer partido, función

@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { flagUrl } from '@/lib/flags'
+import { argDateKey } from '@/lib/utils'
 import Countdown from '@/components/ui/Countdown'
 import PointsPanel, { type Prediction as ScoredPrediction, type ScoringValues } from './PointsPanel'
 
@@ -117,14 +118,25 @@ export default async function DashboardPage() {
     .limit(1)
     .maybeSingle()
 
-  // 6. Apuesta de torneo (banner)
-  const [firstMatchRes, tournamentPredRes] = await Promise.all([
+  // 6. Banners: apuesta de torneo + apuestas pendientes de hoy
+  const [firstMatchRes, tournamentPredRes, openMatchesRes, myPredsRes] = await Promise.all([
     supabase.from('matches').select('match_date').order('match_date', { ascending: true }).limit(1).maybeSingle(),
     supabase.from('tournament_predictions').select('id').eq('user_id', user.id).maybeSingle(),
+    supabase.from('matches')
+      .select('id, match_date')
+      .eq('status', 'upcoming')
+      .gt('betting_closes_at', new Date().toISOString()),
+    supabase.from('predictions').select('match_id').eq('user_id', user.id),
   ])
   const tournamentDeadline = firstMatchRes.data?.match_date as string | undefined
   const tournamentOpen = !!tournamentDeadline && new Date(tournamentDeadline) > new Date()
   const hasTournamentPred = !!tournamentPredRes.data
+
+  const myPredicted = new Set((myPredsRes.data ?? []).map(p => p.match_id as string))
+  const todayKey = argDateKey(new Date().toISOString())
+  const pendingToday = (openMatchesRes.data ?? []).filter(
+    m => argDateKey(m.match_date) === todayKey && !myPredicted.has(m.id)
+  ).length
 
   const greetingName = profile?.displayName ?? profile?.username ?? 'Campeón'
 
@@ -143,6 +155,29 @@ export default async function DashboardPage() {
           Bienvenido a la Arena Digital
         </p>
       </header>
+
+      {/* Banner apuestas pendientes de hoy */}
+      {pendingToday > 0 && (
+        <Link
+          href="/predict"
+          className="rounded-xl border border-error/30 bg-error/10 p-4 sm:p-5 mb-6 flex items-center justify-between gap-4 hover:bg-error/15 transition-colors"
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            <span className="text-3xl shrink-0">⏰</span>
+            <div className="min-w-0">
+              <p className="font-headline font-bold text-on-surface">
+                {pendingToday === 1
+                  ? 'Te falta 1 apuesta para hoy'
+                  : `Te faltan ${pendingToday} apuestas para hoy`}
+              </p>
+              <p className="text-xs text-on-surface-variant truncate">
+                Las apuestas cierran 30 minutos antes de cada partido
+              </p>
+            </div>
+          </div>
+          <span className="badge badge-red shrink-0">Apostar →</span>
+        </Link>
+      )}
 
       {/* Banner apuesta de torneo */}
       {(tournamentOpen || hasTournamentPred) && (
