@@ -75,6 +75,20 @@ export default function RulesPage() {
           </p>
         </div>
 
+        {/* Apuesta de torneo */}
+        <div className="glass-card rounded-xl p-6 sm:p-8 border-l-4 border-secondary-container relative overflow-hidden md:col-span-2">
+          <div className="flex justify-between items-start mb-8">
+            <span className="text-4xl">👑</span>
+            <div className="bg-secondary-container/20 text-secondary-container font-headline text-3xl font-bold px-4 py-2 rounded-lg">
+              +25 / +15 / +20
+            </div>
+          </div>
+          <h3 className="font-headline text-2xl font-bold mb-3 text-on-surface">Apuesta de Torneo</h3>
+          <p className="text-on-surface-variant font-body text-sm leading-relaxed">
+            Una única apuesta <span className="text-secondary-container font-semibold">antes del primer partido del Mundial</span>: el <span className="text-secondary-container font-semibold">campeón (+25)</span>, el <span className="text-on-surface font-semibold">subcampeón (+15)</span> y el <span className="text-yellow-400 font-semibold">goleador del torneo / Botín de Oro (+20)</span>. Los puntos se acreditan cuando termina el Mundial. Si el Botín de Oro se comparte, acertar cualquiera de los máximos goleadores suma.
+          </p>
+        </div>
+
         {/* Penales */}
         <div className="glass-card rounded-xl p-6 sm:p-8 border-l-4 border-orange-400/60 relative overflow-hidden md:col-span-2">
           <div className="flex justify-between items-start mb-8">

@@ -3,12 +3,13 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { logout } from '@/actions/auth'
-import { LayoutDashboard, Target, Trophy, BookOpen, Settings, LogOut, History } from 'lucide-react'
+import { LayoutDashboard, Target, Trophy, BookOpen, Settings, LogOut, History, Crown } from 'lucide-react'
 import type { Profile } from '@/types'
 
 const navLinks = [
   { href: '/dashboard',   label: 'Dashboard',    Icon: LayoutDashboard },
   { href: '/predict',     label: 'Predicciones', Icon: Target },
+  { href: '/tournament',  label: 'Torneo',       Icon: Crown },
   { href: '/history',     label: 'Mis apuestas', Icon: History },
   { href: '/leaderboard', label: 'Clasificación', Icon: Trophy },
   { href: '/rules',       label: 'Reglas',        Icon: BookOpen },

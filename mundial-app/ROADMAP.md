@@ -29,19 +29,7 @@ Supabase pg_cron):
 - **Esfuerzo:** medio. **Impacto:** la mayor mejora operativa — ahorra
   un mes de carga manual y los puntos salen la misma noche.
 
-## 3. Predicciones de torneo (¡vence el 11/06!)
-
-Antes del primer partido, cada uno apuesta una única vez:
-
-- **Campeón** (ej. +25 pts), **subcampeón** (+15), **goleador del
-  torneo / Botín de Oro** (+20).
-- Se cierra cuando arranca el Mundial; los puntos se acreditan al final.
-- Mantiene el interés de todos hasta la final, incluso de los últimos
-  de la tabla.
-- **Esfuerzo:** medio (tabla nueva + form + scoring al final).
-  **Urgencia:** solo tiene gracia si se lanza antes del primer partido.
-
-## 4. Mejoras menores
+## 3. Mejoras menores
 
 - **Banner "te faltan N apuestas que cierran hoy"** en el dashboard —
   la gente se olvida de apostar y se enoja después. Esfuerzo muy bajo.
@@ -54,6 +42,10 @@ Antes del primer partido, cada uno apuesta una única vez:
   Esfuerzo medio. Hay tiempo hasta fin de mes.
 
 ## Hecho
+
+- ~~Predicciones de torneo: campeón +25, subcampeón +15, Botín de Oro
+  +20. Página /tournament, cierre por RLS al primer partido, función
+  `close_tournament()` para acreditar puntos al final~~ (2026-06-09)
 
 - ~~Responsive mobile + navegación inferior~~ (2026-06-09)
 - ~~Cancha con 11 titular + banco para elegir goleadores/asistentes~~

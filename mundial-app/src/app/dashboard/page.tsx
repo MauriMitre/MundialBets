@@ -117,6 +117,15 @@ export default async function DashboardPage() {
     .limit(1)
     .maybeSingle()
 
+  // 6. Apuesta de torneo (banner)
+  const [firstMatchRes, tournamentPredRes] = await Promise.all([
+    supabase.from('matches').select('match_date').order('match_date', { ascending: true }).limit(1).maybeSingle(),
+    supabase.from('tournament_predictions').select('id').eq('user_id', user.id).maybeSingle(),
+  ])
+  const tournamentDeadline = firstMatchRes.data?.match_date as string | undefined
+  const tournamentOpen = !!tournamentDeadline && new Date(tournamentDeadline) > new Date()
+  const hasTournamentPred = !!tournamentPredRes.data
+
   const greetingName = profile?.displayName ?? profile?.username ?? 'Campeón'
 
   const homeTeam = nextMatch?.homeTeam as { id: string; name: string; code: string } | null | undefined
@@ -134,6 +143,29 @@ export default async function DashboardPage() {
           Bienvenido a la Arena Digital
         </p>
       </header>
+
+      {/* Banner apuesta de torneo */}
+      {(tournamentOpen || hasTournamentPred) && (
+        <Link
+          href="/tournament"
+          className="card-gold p-4 sm:p-5 mb-6 flex items-center justify-between gap-4 hover:opacity-90 transition-opacity"
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            <span className="text-3xl shrink-0">🏆</span>
+            <div className="min-w-0">
+              <p className="font-headline font-bold text-on-surface">Apuesta de Torneo</p>
+              <p className="text-xs text-on-surface-variant truncate">
+                {tournamentOpen
+                  ? 'Campeón, subcampeón y Botín de Oro — cierra cuando arranca el Mundial'
+                  : 'Mirá tu apuesta de campeón, subcampeón y goleador'}
+              </p>
+            </div>
+          </div>
+          <span className="badge badge-gold shrink-0">
+            {tournamentOpen ? (hasTournamentPred ? 'Editar' : '¡Apostá ya!') : 'Ver'}
+          </span>
+        </Link>
+      )}
 
       {/* Bento Grid */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6">

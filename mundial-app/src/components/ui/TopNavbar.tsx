@@ -7,6 +7,7 @@ import type { Profile } from '@/types'
 const navLinks = [
   { href: '/dashboard',   label: 'Dashboard' },
   { href: '/predict',     label: 'Predicciones' },
+  { href: '/tournament',  label: 'Torneo' },
   { href: '/leaderboard', label: 'Clasificación' },
   { href: '/rules',       label: 'Reglas' },
 ]
