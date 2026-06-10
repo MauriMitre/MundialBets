@@ -140,7 +140,22 @@ export default function PredictionForm({ match, players, existing, readonly, use
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!winner) { setError('Seleccioná un resultado'); return }
+    if (homeScore === '' || awayScore === '') {
+      setError('Cargá el resultado exacto del partido antes de guardar')
+      return
+    }
+    const h = parseInt(homeScore)
+    const a = parseInt(awayScore)
+    if (isNaN(h) || isNaN(a) || h < 0 || h > 20 || a < 0 || a > 20) {
+      setError('El resultado debe estar entre 0 y 20 goles')
+      return
+    }
+    if (!winner) {
+      setError(isKnockout
+        ? 'Empate en los 90\': seleccioná quién pasa de ronda'
+        : 'Seleccioná quién gana')
+      return
+    }
     setError('')
 
     startTransition(async () => {
@@ -278,7 +293,7 @@ export default function PredictionForm({ match, players, existing, readonly, use
           Resultado exacto
         </h3>
         <p className="font-body text-xs text-on-surface-variant/60 mb-3">
-          Opcional — +5 pts si acertás
+          Obligatorio — +5 pts si acertás el marcador
         </p>
         <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
           <div className="text-center">
