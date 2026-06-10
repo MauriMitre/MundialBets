@@ -2,12 +2,13 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Target, Trophy, BookOpen, Settings, History } from 'lucide-react'
+import { LayoutDashboard, Target, Trophy, BookOpen, Settings, History, Crown } from 'lucide-react'
 import type { Profile } from '@/types'
 
 const navLinks = [
   { href: '/dashboard',   label: 'Inicio',     Icon: LayoutDashboard },
   { href: '/predict',     label: 'Apostar',    Icon: Target },
+  { href: '/tournament',  label: 'Torneo',     Icon: Crown },
   { href: '/history',     label: 'Apuestas',   Icon: History },
   { href: '/leaderboard', label: 'Tabla',      Icon: Trophy },
   { href: '/rules',       label: 'Reglas',     Icon: BookOpen },
