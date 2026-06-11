@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 import PredictionForm from './PredictionForm'
+import AllPredictions from './AllPredictions'
 import { isBettingOpen } from '@/lib/utils'
 import { STAGE_LABELS, isKnockout } from '@/types'
 import { flagUrl } from '@/lib/flags'
@@ -48,6 +49,43 @@ export default async function PredictPage({ params }: Props) {
 
   const canPredict = match.status === 'upcoming' && isBettingOpen(match.betting_closes_at)
   const isFinished = match.status === 'finished'
+
+  // Con apuestas cerradas se revelan las predicciones de todos
+  // (la RLS solo devuelve filas ajenas cuando el cierre ya pasó)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let allPredictions: any[] = []
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let allProfiles: any[] = []
+  if (!canPredict) {
+    const [predsRes, profilesRes] = await Promise.all([
+      supabase
+        .from('predictions')
+        .select(`
+          id,
+          user_id,
+          predicted_winner,
+          predicted_home_score,
+          predicted_away_score,
+          predicted_penalty_home_score,
+          predicted_penalty_away_score,
+          points_earned,
+          is_scored,
+          user:user_id ( id, username, display_name ),
+          predictionPlayers:prediction_players (
+            event_type,
+            player:player_id ( name, shirt_number )
+          )
+        `)
+        .eq('match_id', matchId),
+      supabase
+        .from('profiles')
+        .select('id, username, display_name'),
+    ])
+    if (predsRes.error) throw new Error(`Error cargando las apuestas: ${predsRes.error.message}`)
+    if (profilesRes.error) throw new Error(`Error cargando perfiles: ${profilesRes.error.message}`)
+    allPredictions = predsRes.data ?? []
+    allProfiles = profilesRes.data ?? []
+  }
 
   return (
     <div className="max-w-lg mx-auto space-y-5">
@@ -99,6 +137,16 @@ export default async function PredictPage({ params }: Props) {
           )}
         </div>
       </div>
+
+      {/* Apuestas de todos, reveladas al cerrar las apuestas */}
+      {!canPredict && (
+        <AllPredictions
+          match={match}
+          predictions={allPredictions}
+          profiles={allProfiles}
+          currentUserId={user.id}
+        />
+      )}
 
       {/* Formulario de predicción: editable con apuestas abiertas,
           solo lectura si hay predicción y el partido está en vivo,

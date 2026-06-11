@@ -3,19 +3,7 @@
 Ideas anotadas el 2026-06-09 (dos días antes del arranque del Mundial).
 Ordenadas por impacto.
 
-## 1. Ver las apuestas de los demás al cerrar las apuestas ⭐
-
-Hoy cada usuario solo ve sus propias predicciones. Cuando cierran las
-apuestas de un partido (30 min antes del inicio), la página del partido
-debería mostrar la predicción de **todos**: tabla con cada jugador, su
-marcador y sus goleadores/asistentes apostados.
-
-- Sin riesgo de copia: solo se revela con apuestas cerradas
-  (`betting_closes_at` ya existe en `matches`).
-- **Esfuerzo:** bajo. **Impacto:** el más alto en lo social — es el
-  momento "¿vos pusiste 3-0??" de toda liga de amigos.
-
-## 2. Carga automática de resultados ⭐
+## 1. Carga automática de resultados ⭐
 
 Son 104 partidos y hoy el admin carga a mano resultado + goleadores +
 asistencias de cada uno. Integrar una API de fútbol (football-data.org
@@ -29,7 +17,7 @@ Supabase pg_cron):
 - **Esfuerzo:** medio. **Impacto:** la mayor mejora operativa — ahorra
   un mes de carga manual y los puntos salen la misma noche.
 
-## 3. Mejoras menores
+## 2. Mejoras menores
 
 - **El que más sumó en la jornada**: destacado diario en el dashboard
   con el ganador de la fecha. Da tema de conversación. Esfuerzo bajo.
@@ -38,6 +26,12 @@ Supabase pg_cron):
   Esfuerzo medio. Hay tiempo hasta fin de mes.
 
 ## Hecho
+
+- ~~Ver las apuestas de los demás al cerrar las apuestas: sección
+  "Las apuestas de todos" en la página del partido, con marcador,
+  goleadores/asistentes, puntos y quiénes no apostaron. La RLS ya
+  revelaba las filas tras el cierre (migration_security_fixes.sql);
+  solo hizo falta UI. Test: scripts/test-reveal.mjs~~ (2026-06-11)
 
 - ~~PWA: manifest + íconos + meta iOS para instalar como app~~
   (2026-06-09)

@@ -289,18 +289,15 @@ function MatchCard({ match, predicted }: { match: any; predicted: boolean }) {
             Editar predicción →
           </Link>
         )}
-        {isLive && predicted && (
+        {/* Apuestas cerradas (upcoming cerrado, en vivo o finalizado):
+            la página del partido revela las apuestas de todos */}
+        {!canPredict && (
           <Link
             href={`/predict/${match.id}`}
             className="text-primary font-label text-xs uppercase tracking-wider font-bold hover:underline"
           >
-            Ver predicción →
+            Ver apuestas de todos →
           </Link>
-        )}
-        {isClosed && !predicted && (
-          <span className="font-label text-xs text-on-surface-variant/40 uppercase tracking-wider">
-            Apuestas cerradas
-          </span>
         )}
       </div>
     </div>
