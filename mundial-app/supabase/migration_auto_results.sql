@@ -1,19 +1,24 @@
 -- ============================================================
--- MIGRACIÓN: Carga automática de resultados (API-Football)
+-- MIGRACIÓN: Carga automática de resultados (API de ESPN)
 -- Ejecutar en: Supabase Dashboard > SQL Editor
+--
+-- Nota: el plan original era API-Football, pero su plan gratis no
+-- cubre la temporada 2026 (football-data.org gratis tampoco trae
+-- goleadores). Se usa la API no oficial de ESPN: gratis y sin key.
+-- Las columnas api_football_id se reutilizan para los IDs de ESPN.
 --
 -- Orden de puesta en marcha:
 --   1. Pegar esta migración (hasta la sección pg_cron exclusive).
---   2. Conseguir API key gratis en https://dashboard.api-football.com
---      y ponerla en .env (API_FOOTBALL_KEY=...) y en Vercel.
---   3. node scripts/map-api-ids.mjs --apply  (mapea equipos,
---      jugadores y partidos contra los IDs de la API; re-ejecutar
---      cuando se definan los cruces de eliminatorias).
---   4. Configurar SYNC_SECRET en Vercel y .env.
---   5. Pegar la sección pg_cron de abajo con URL y secret reales.
+--   2. node scripts/map-api-ids.mjs --apply  (mapea equipos y
+--      partidos contra los IDs de ESPN; re-ejecutar cuando se
+--      definan los cruces de eliminatorias).
+--   3. Configurar SYNC_SECRET en Vercel (ya está en .env).
+--   4. Pegar la sección pg_cron de abajo con URL y secret reales.
 -- ============================================================
 
--- 1. IDs de API-Football para mapear sin adivinar nombres
+-- 1. IDs de ESPN para mapear sin adivinar nombres
+--    (players.api_football_id quedó sin uso: los jugadores se
+--    matchean por nombre completo contra el plantel oficial)
 ALTER TABLE teams   ADD COLUMN IF NOT EXISTS api_football_id INT UNIQUE;
 ALTER TABLE players ADD COLUMN IF NOT EXISTS api_football_id INT;
 ALTER TABLE matches ADD COLUMN IF NOT EXISTS api_fixture_id  INT UNIQUE;

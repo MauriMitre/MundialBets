@@ -3,17 +3,17 @@
 Ideas anotadas el 2026-06-09 (dos días antes del arranque del Mundial).
 Ordenadas por impacto.
 
-## 1. Carga automática de resultados — falta puesta en marcha ⭐
+## 1. Carga automática de resultados — solo falta el cron ⭐
 
-Código listo (API-Football + pg_cron). Pendiente de configuración:
+Fuente: API no oficial de ESPN (gratis, sin key — API-Football y
+football-data.org resultaron pagos para el Mundial 2026). Hecho:
+migración aplicada, 48 equipos y 72 partidos de grupos mapeados,
+parser validado contra MEX-RSA (goles + asistencias OK). Pendiente:
 
-1. Pegar `supabase/migration_auto_results.sql` en el SQL Editor.
-2. API key gratis en dashboard.api-football.com → `API_FOOTBALL_KEY`
-   en `.env` y en Vercel (junto con `SYNC_SECRET`, ya está en `.env`).
-3. `node scripts/map-api-ids.mjs --apply` (~50 requests de 100/día).
-   Re-ejecutar al definirse los cruces de eliminatorias (~27/06).
-4. Pegar el bloque pg_cron de la migración con la URL de Vercel y el
-   secret reales.
+1. Pegar el bloque pg_cron de `migration_auto_results.sql` con la
+   URL real (mundial-bets.vercel.app) y el SYNC_SECRET.
+2. Re-ejecutar `node scripts/map-api-ids.mjs --apply` al definirse
+   los cruces de eliminatorias (~28/06) para mapear esos 32 partidos.
 
 ## 2. Mejoras menores
 

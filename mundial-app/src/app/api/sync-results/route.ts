@@ -1,17 +1,17 @@
-// Carga automática de resultados desde API-Football (api-sports.io).
-// La llama el pg_cron de Supabase cada 10 min (ver
+// Carga automática de resultados desde la API no oficial de ESPN
+// (gratis, sin key). La llama el pg_cron de Supabase cada 10 min (ver
 // supabase/migration_auto_results.sql). Flujo:
 //
 //   1. Busca partidos que arrancaron hace <8h (o quedaron 'live') y
-//      todavía no tienen puntos calculados. Si no hay, sale sin
-//      gastar requests de la API (plan gratis: 100/día).
-//   2. Una sola request /fixtures?ids=... trae estado, marcador y
-//      eventos de hasta 20 partidos.
+//      todavía no tienen puntos calculados. Si no hay, sale sin pegar
+//      a ESPN.
+//   2. Por cada candidato pide el summary del evento (mapeado por
+//      scripts/map-api-ids.mjs en matches.api_fixture_id).
 //   3. En juego → status 'live' + marcador parcial.
-//      Terminado → marcador de los 90' (la semántica de la BD),
-//      penales, knockout_winner, eventos gol/asistencia mapeados a
-//      players de la BD (por api_football_id, fallback por nombre) y
-//      close_match() recalcula los puntos de todos.
+//      Terminado → marcador de los 90' (semántica de la BD: períodos
+//      1-2), penales de la tanda, knockout_winner, eventos gol/
+//      asistencia (participants de ESPN, matcheados contra el plantel
+//      por nombre completo) y close_match() recalcula los puntos.
 //
 // Idempotente: si el admin corrige después desde /admin/results, el
 // recálculo ajusta por diferencia. Querystring: ?secret=... (obligatorio),
@@ -20,21 +20,20 @@ import { type NextRequest } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/server'
 import { matchPlayerName } from '@/lib/nameMatch'
 
-const API_BASE = 'https://v3.football.api-sports.io'
-
-const LIVE_STATUSES = new Set(['1H', 'HT', '2H', 'ET', 'BT', 'P', 'SUSP', 'INT', 'LIVE'])
-const DONE_STATUSES = new Set(['FT', 'AET', 'PEN'])
+const SUMMARY = 'https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/summary'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
+function statusKind(name: string): 'pre' | 'live' | 'done' {
+  if (name === 'STATUS_SCHEDULED' || name === 'STATUS_POSTPONED' || name === 'STATUS_CANCELED') return 'pre'
+  if (name === 'STATUS_FULL_TIME' || name.includes('FINAL')) return 'done'
+  return 'live'
+}
 
 export async function GET(request: NextRequest) {
   const secret = request.nextUrl.searchParams.get('secret') ?? request.headers.get('x-sync-secret')
   if (!process.env.SYNC_SECRET || secret !== process.env.SYNC_SECRET) {
     return Response.json({ error: 'unauthorized' }, { status: 401 })
-  }
-  const apiKey = process.env.API_FOOTBALL_KEY
-  if (!apiKey) {
-    return Response.json({ error: 'API_FOOTBALL_KEY no configurada' }, { status: 500 })
   }
   const dry = request.nextUrl.searchParams.get('dry') === '1'
   const supabase = createAdminClient()
@@ -54,113 +53,121 @@ export async function GET(request: NextRequest) {
     return Response.json({ checked: 0, message: 'sin partidos en ventana' })
   }
 
-  // ── 2. Una request por tick: fixtures por ids ───────────
-  const ids = candidates.map(m => m.api_fixture_id).join('-')
-  const apiRes = await fetch(`${API_BASE}/fixtures?ids=${ids}&timezone=UTC`, {
-    headers: { 'x-apisports-key': apiKey },
-    cache: 'no-store',
-  })
-  const body = await apiRes.json()
-  const apiErrors = body?.errors
-  if (!apiRes.ok || (apiErrors && Object.keys(apiErrors).length > 0 && !Array.isArray(apiErrors))) {
-    return Response.json({ error: 'API-Football', detail: apiErrors ?? apiRes.status }, { status: 502 })
-  }
-  const fixtures: any[] = body?.response ?? []
-  const byFixtureId = new Map(candidates.map(m => [m.api_fixture_id, m]))
-
   const summary: any = { checked: candidates.length, live: [], finished: [], warnings: [], dry }
 
-  for (const fx of fixtures) {
-    const match = byFixtureId.get(fx.fixture?.id)
-    if (!match) continue
-    const st: string = fx.fixture?.status?.short ?? ''
+  for (const match of candidates) {
+    const res = await fetch(`${SUMMARY}?event=${match.api_fixture_id}`, { cache: 'no-store' })
+    if (!res.ok) {
+      summary.warnings.push({ match: match.id, warning: `ESPN summary HTTP ${res.status}` })
+      continue
+    }
+    const data = await res.json()
+    const comp = data?.header?.competitions?.[0]
+    if (!comp) {
+      summary.warnings.push({ match: match.id, warning: 'summary sin header.competitions' })
+      continue
+    }
+    const kind = statusKind(comp.status?.type?.name ?? '')
+    if (kind === 'pre') continue
+
+    const homeC = comp.competitors?.find((c: any) => c.homeAway === 'home')
+    const awayC = comp.competitors?.find((c: any) => c.homeAway === 'away')
+    const homeTotal = parseInt(homeC?.score ?? '')
+    const awayTotal = parseInt(awayC?.score ?? '')
 
     // ── En juego: status live + marcador parcial ──────────
-    if (LIVE_STATUSES.has(st)) {
-      summary.live.push({ match: match.id, status: st, score: `${fx.goals?.home ?? 0}-${fx.goals?.away ?? 0}` })
+    if (kind === 'live') {
+      summary.live.push({ match: match.id, status: comp.status?.type?.name, score: `${homeTotal || 0}-${awayTotal || 0}` })
       if (!dry) {
         await supabase.from('matches').update({
           status: 'live',
-          home_score: fx.goals?.home ?? null,
-          away_score: fx.goals?.away ?? null,
+          home_score: isNaN(homeTotal) ? null : homeTotal,
+          away_score: isNaN(awayTotal) ? null : awayTotal,
         }).eq('id', match.id)
       }
       continue
     }
 
-    if (!DONE_STATUSES.has(st)) continue
-
     // ── Terminado ─────────────────────────────────────────
-    // Semántica de la BD: home/away_score = tiempo reglamentario;
-    // empate + knockout_winner si se definió después (ET/penales)
-    const ft = fx.score?.fulltime
-    if (ft?.home === null || ft?.home === undefined) {
-      summary.warnings.push({ match: match.id, warning: `sin marcador fulltime (status ${st})` })
+    if (isNaN(homeTotal) || isNaN(awayTotal)) {
+      summary.warnings.push({ match: match.id, warning: 'final sin marcador' })
       continue
     }
-    const pen = fx.score?.penalty
-    const homeWinner = fx.teams?.home?.winner
+
+    // Goles reales: scoringPlay sin tanda de penales
+    const goals = (data?.keyEvents ?? []).filter((k: any) => k.scoringPlay && !k.shootout)
+
+    // Semántica de la BD: home/away_score = tiempo reglamentario.
+    // Si hubo alargue (períodos 3-4), restar esos goles del total.
+    const homeEspnId = homeC?.team?.id
+    let homeScore = homeTotal
+    let awayScore = awayTotal
+    for (const g of goals) {
+      if ((g.period?.number ?? 1) >= 3) {
+        if (g.team?.id === homeEspnId) homeScore--
+        else awayScore--
+      }
+    }
+
+    const penHome = homeC?.shootoutScore ?? null
+    const penAway = awayC?.shootoutScore ?? null
     const knockoutWinner =
-      match.stage !== 'group' && ft.home === ft.away
-        ? (homeWinner === true ? 'home' : homeWinner === false ? 'away' : null)
+      match.stage !== 'group' && homeScore === awayScore
+        ? (homeC?.winner === true ? 'home' : awayC?.winner === true ? 'away' : null)
         : null
 
-    // Eventos de gol: sin goles en contra (no son mérito del goleador)
-    // y sin la tanda de penales
-    const goalEvents = (fx.events ?? []).filter((e: any) =>
-      e.type === 'Goal' &&
-      e.detail !== 'Missed Penalty' &&
-      e.detail !== 'Own Goal' &&
-      e.comments !== 'Penalty Shootout'
-    )
-
-    // Plantel de ambos equipos para mapear jugadores
+    // Plantel de ambos equipos para mapear nombres
     const { data: roster } = await supabase
       .from('players')
-      .select('id, name, team_id, api_football_id')
+      .select('id, name, team_id')
       .in('team_id', [match.home_team_id, match.away_team_id])
-    const byApiId = new Map((roster ?? []).filter(p => p.api_football_id).map(p => [p.api_football_id, p]))
     const { data: teamRows } = await supabase
       .from('teams')
       .select('id, api_football_id')
       .in('id', [match.home_team_id, match.away_team_id])
-    const teamIdByApi = new Map((teamRows ?? []).map(t => [t.api_football_id, t.id]))
+    const teamIdByEspn = new Map((teamRows ?? []).map(t => [String(t.api_football_id), t.id]))
 
-    const resolvePlayer = (apiPlayer: any, apiTeamId: number) => {
-      if (!apiPlayer?.name) return null
-      const direct = apiPlayer.id ? byApiId.get(apiPlayer.id) : null
-      if (direct) return direct
-      const teamId = teamIdByApi.get(apiTeamId)
-      const teamRoster = (roster ?? []).filter(p => !teamId || p.team_id === teamId)
-      return matchPlayerName(apiPlayer.name, teamRoster)
+    const resolvePlayer = (name: string | undefined, espnTeamId: string | undefined) => {
+      if (!name) return null
+      const teamId = espnTeamId ? teamIdByEspn.get(String(espnTeamId)) : null
+      const scoped = teamId ? (roster ?? []).filter(p => p.team_id === teamId) : (roster ?? [])
+      return matchPlayerName(name, scoped) ?? matchPlayerName(name, roster ?? [])
     }
 
     const eventRows: { match_id: string; player_id: string; event_type: string; minute: number | null }[] = []
     const eventLabels: string[] = []
-    for (const e of goalEvents) {
-      const minute = e.time?.elapsed ?? null
-      const scorer = resolvePlayer(e.player, e.team?.id)
+    for (const g of goals) {
+      const minute = g.clock?.value ? Math.ceil(g.clock.value / 60) : null
+      const isOwnGoal = (g.type?.type ?? '').includes('own')
+      const scorerName = g.participants?.[0]?.athlete?.displayName
+      if (isOwnGoal) {
+        summary.warnings.push({ match: match.id, warning: `gol en contra (${scorerName ?? '?'} ${minute}'): no se acredita goleador` })
+        continue
+      }
+      const scorer = resolvePlayer(scorerName, g.team?.id)
       if (scorer) {
         eventRows.push({ match_id: match.id, player_id: scorer.id, event_type: 'goal', minute })
         eventLabels.push(`gol ${scorer.name} ${minute}'`)
       } else {
-        summary.warnings.push({ match: match.id, warning: `goleador sin match en BD: "${e.player?.name}" ${minute}' — cargarlo a mano en /admin/results` })
+        summary.warnings.push({ match: match.id, warning: `goleador sin match en BD: "${scorerName}" ${minute}' — cargarlo a mano en /admin/results` })
       }
-      if (e.assist?.name) {
-        const assister = resolvePlayer(e.assist, e.team?.id)
+      // participants[1] = asistente (cuando el texto dice "Assisted by")
+      const assistName = g.participants?.[1]?.athlete?.displayName
+      if (assistName && /assisted by/i.test(g.text ?? '')) {
+        const assister = resolvePlayer(assistName, g.team?.id)
         if (assister) {
           eventRows.push({ match_id: match.id, player_id: assister.id, event_type: 'assist', minute })
           eventLabels.push(`asist ${assister.name} ${minute}'`)
         } else {
-          summary.warnings.push({ match: match.id, warning: `asistente sin match en BD: "${e.assist.name}" ${minute}' — cargarlo a mano en /admin/results` })
+          summary.warnings.push({ match: match.id, warning: `asistente sin match en BD: "${assistName}" ${minute}' — cargarlo a mano en /admin/results` })
         }
       }
     }
 
     summary.finished.push({
       match: match.id,
-      score: `${ft.home}-${ft.away}`,
-      penalties: pen?.home !== null && pen?.home !== undefined ? `${pen.home}-${pen.away}` : null,
+      score: `${homeScore}-${awayScore}`,
+      penalties: penHome !== null ? `${penHome}-${penAway}` : null,
       knockoutWinner,
       events: eventLabels,
     })
@@ -173,10 +180,10 @@ export async function GET(request: NextRequest) {
 
     const { error: updErr } = await supabase.from('matches').update({
       status: 'finished',
-      home_score: ft.home,
-      away_score: ft.away,
-      penalty_home_score: pen?.home ?? null,
-      penalty_away_score: pen?.away ?? null,
+      home_score: homeScore,
+      away_score: awayScore,
+      penalty_home_score: penHome,
+      penalty_away_score: penAway,
       knockout_winner: knockoutWinner,
     }).eq('id', match.id)
     if (updErr) { summary.warnings.push({ match: match.id, warning: `guardando resultado: ${updErr.message}` }); continue }
