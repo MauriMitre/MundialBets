@@ -52,9 +52,13 @@ export default function PredictionForm({ match, players, existing, readonly, use
       return acc
     }, {} as Record<string, number>)
   })
-  const [assisters, setAssisters] = useState<string[]>(
-    existing?.predictionPlayers?.filter(p => p.event_type === 'assist').map(p => p.player_id) ?? []
-  )
+  const [assisters, setAssisters] = useState<Record<string, number>>(() => {
+    const assists = existing?.predictionPlayers?.filter(p => p.event_type === 'assist') ?? []
+    return assists.reduce((acc, p) => {
+      acc[p.player_id] = (acc[p.player_id] || 0) + 1
+      return acc
+    }, {} as Record<string, number>)
+  })
   const [penaltyHome, setPenaltyHome] = useState<string>(
     existing?.predicted_penalty_home_score?.toString() ?? ''
   )
@@ -65,16 +69,12 @@ export default function PredictionForm({ match, players, existing, readonly, use
   const totalGoals = (parseInt(homeScore) || 0) + (parseInt(awayScore) || 0)
 
   const totalScorerGoals = Object.values(scorers).reduce((a, b) => a + b, 0)
-  const totalAssists = assisters.length
+  const totalAssists = Object.values(assisters).reduce((a, b) => a + b, 0)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
 
   const homePlayers = players.filter(p => p.team?.id === match.home_team_id)
   const awayPlayers = players.filter(p => p.team?.id === match.away_team_id)
-
-  function togglePlayer(id: string, list: string[], setList: (v: string[]) => void) {
-    setList(list.includes(id) ? list.filter(x => x !== id) : [...list, id])
-  }
 
   function incrementScorer(id: string) {
     if (totalScorerGoals >= totalGoals) return
@@ -82,33 +82,46 @@ export default function PredictionForm({ match, players, existing, readonly, use
   }
 
   function decrementScorer(id: string) {
-    setScorers(prev => {
-      const count = prev[id] || 0
-      if (count <= 1) {
-        const rest = { ...prev }
-        delete rest[id]
-        return rest
-      }
-      return { ...prev, [id]: count - 1 }
-    })
+    setScorers(prev => decrementCount(prev, id))
+  }
+
+  function incrementAssister(id: string) {
+    if (totalAssists >= totalGoals) return
+    setAssisters(prev => ({ ...prev, [id]: (prev[id] || 0) + 1 }))
+  }
+
+  function decrementAssister(id: string) {
+    setAssisters(prev => decrementCount(prev, id))
+  }
+
+  function decrementCount(prev: Record<string, number>, id: string) {
+    const count = prev[id] || 0
+    if (count <= 1) {
+      const rest = { ...prev }
+      delete rest[id]
+      return rest
+    }
+    return { ...prev, [id]: count - 1 }
+  }
+
+  function trimCounts(prev: Record<string, number>, maxGoals: number) {
+    let remaining = maxGoals
+    const trimmed: Record<string, number> = {}
+    for (const [pid, count] of Object.entries(prev)) {
+      if (remaining <= 0) break
+      const take = Math.min(count, remaining)
+      trimmed[pid] = take
+      remaining -= take
+    }
+    return trimmed
   }
 
   function trimScorers(maxGoals: number) {
-    setScorers(prev => {
-      let remaining = maxGoals
-      const trimmed: Record<string, number> = {}
-      for (const [pid, count] of Object.entries(prev)) {
-        if (remaining <= 0) break
-        const take = Math.min(count, remaining)
-        trimmed[pid] = take
-        remaining -= take
-      }
-      return trimmed
-    })
+    setScorers(prev => trimCounts(prev, maxGoals))
   }
 
   function trimAssisters(maxGoals: number) {
-    setAssisters(prev => prev.slice(0, maxGoals))
+    setAssisters(prev => trimCounts(prev, maxGoals))
   }
 
   function syncWinnerFromScore(home: string, away: string) {
@@ -197,7 +210,9 @@ export default function PredictionForm({ match, players, existing, readonly, use
         ...Object.entries(scorers).flatMap(([pid, count]) =>
           Array.from({ length: count }, () => ({ prediction_id: pred.id, player_id: pid, event_type: 'goal' }))
         ),
-        ...assisters.map(pid => ({ prediction_id: pred.id, player_id: pid, event_type: 'assist' })),
+        ...Object.entries(assisters).flatMap(([pid, count]) =>
+          Array.from({ length: count }, () => ({ prediction_id: pred.id, player_id: pid, event_type: 'assist' }))
+        ),
       ]
       if (playerRows.length > 0) {
         const { error: insErr } = await supabase.from('prediction_players').insert(playerRows)
@@ -340,7 +355,8 @@ export default function PredictionForm({ match, players, existing, readonly, use
           totalAssists={totalAssists}
           onIncrementScorer={incrementScorer}
           onDecrementScorer={decrementScorer}
-          onToggleAssister={id => togglePlayer(id, assisters, setAssisters)}
+          onIncrementAssister={incrementAssister}
+          onDecrementAssister={decrementAssister}
           readonly={readonly}
         />
       )}

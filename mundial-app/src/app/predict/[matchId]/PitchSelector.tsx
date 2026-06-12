@@ -20,13 +20,14 @@ interface Props {
   homePlayers: PitchPlayer[]
   awayPlayers: PitchPlayer[]
   scorers: Record<string, number>
-  assisters: string[]
+  assisters: Record<string, number>
   totalGoals: number
   totalScorerGoals: number
   totalAssists: number
   onIncrementScorer: (id: string) => void
   onDecrementScorer: (id: string) => void
-  onToggleAssister: (id: string) => void
+  onIncrementAssister: (id: string) => void
+  onDecrementAssister: (id: string) => void
   readonly: boolean
 }
 
@@ -73,7 +74,8 @@ export default function PitchSelector({
   totalAssists,
   onIncrementScorer,
   onDecrementScorer,
-  onToggleAssister,
+  onIncrementAssister,
+  onDecrementAssister,
   readonly,
 }: Props) {
   const [mode, setMode] = useState<Mode>('goal')
@@ -127,7 +129,7 @@ export default function PitchSelector({
           ? 'Ingresá un resultado para poder seleccionar jugadores'
           : mode === 'goal'
             ? `Tocá un jugador para sumarle un gol · máximo ${totalGoals} en total`
-            : `Tocá un jugador para marcarlo como asistente · máximo ${totalGoals} en total`}
+            : `Tocá un jugador para sumarle una asistencia · máximo ${totalGoals} en total`}
       </p>
 
       <div className="space-y-4">
@@ -142,7 +144,8 @@ export default function PitchSelector({
           readonly={readonly}
           onIncrementScorer={onIncrementScorer}
           onDecrementScorer={onDecrementScorer}
-          onToggleAssister={onToggleAssister}
+          onIncrementAssister={onIncrementAssister}
+          onDecrementAssister={onDecrementAssister}
         />
         <Pitch
           team={awayTeam}
@@ -155,7 +158,8 @@ export default function PitchSelector({
           readonly={readonly}
           onIncrementScorer={onIncrementScorer}
           onDecrementScorer={onDecrementScorer}
-          onToggleAssister={onToggleAssister}
+          onIncrementAssister={onIncrementAssister}
+          onDecrementAssister={onDecrementAssister}
         />
       </div>
     </div>
@@ -173,19 +177,21 @@ function Pitch({
   readonly,
   onIncrementScorer,
   onDecrementScorer,
-  onToggleAssister,
+  onIncrementAssister,
+  onDecrementAssister,
 }: {
   team: TeamInfo
   players: PitchPlayer[]
   mode: Mode
   scorers: Record<string, number>
-  assisters: string[]
+  assisters: Record<string, number>
   canAddGoal: boolean
   canAddAssist: boolean
   readonly: boolean
   onIncrementScorer: (id: string) => void
   onDecrementScorer: (id: string) => void
-  onToggleAssister: (id: string) => void
+  onIncrementAssister: (id: string) => void
+  onDecrementAssister: (id: string) => void
 }) {
   if (players.length === 0) return null
 
@@ -207,7 +213,7 @@ function Pitch({
 
   const chipProps = {
     mode, canAddGoal, canAddAssist, readonly,
-    onIncrementScorer, onDecrementScorer, onToggleAssister,
+    onIncrementScorer, onDecrementScorer, onIncrementAssister, onDecrementAssister,
   }
 
   return (
@@ -246,7 +252,7 @@ function Pitch({
                     key={p.id}
                     player={p}
                     goals={scorers[p.id] ?? 0}
-                    assisted={assisters.includes(p.id)}
+                    assists={assisters[p.id] ?? 0}
                     {...chipProps}
                   />
                 ))}
@@ -268,7 +274,7 @@ function Pitch({
                 key={p.id}
                 player={p}
                 goals={scorers[p.id] ?? 0}
-                assisted={assisters.includes(p.id)}
+                assists={assisters[p.id] ?? 0}
                 {...chipProps}
               />
             ))}
@@ -282,35 +288,38 @@ function Pitch({
 function PlayerChip({
   player,
   goals,
-  assisted,
+  assists,
   mode,
   canAddGoal,
   canAddAssist,
   readonly,
   onIncrementScorer,
   onDecrementScorer,
-  onToggleAssister,
+  onIncrementAssister,
+  onDecrementAssister,
 }: {
   player: PitchPlayer
   goals: number
-  assisted: boolean
+  assists: number
   mode: Mode
   canAddGoal: boolean
   canAddAssist: boolean
   readonly: boolean
   onIncrementScorer: (id: string) => void
   onDecrementScorer: (id: string) => void
-  onToggleAssister: (id: string) => void
+  onIncrementAssister: (id: string) => void
+  onDecrementAssister: (id: string) => void
 }) {
-  const selectedInMode = mode === 'goal' ? goals > 0 : assisted
+  const countInMode = mode === 'goal' ? goals : assists
+  const selectedInMode = countInMode > 0
   const canAdd = mode === 'goal' ? canAddGoal : canAddAssist
-  // En modo asistencia el tap des-selecciona; en modo gol se resta con el botón −
-  const tappable = !readonly && (canAdd || (mode === 'assist' && assisted))
+  // El tap suma en el modo activo; se resta con el botón −
+  const tappable = !readonly && canAdd
 
   function handleTap() {
     if (!tappable) return
     if (mode === 'goal') onIncrementScorer(player.id)
-    else onToggleAssister(player.id)
+    else onIncrementAssister(player.id)
   }
 
   // "Nombre Apellido" en dos líneas; nombres de una sola palabra
@@ -331,7 +340,7 @@ function PlayerChip({
           className={`w-9 h-9 rounded-full flex items-center justify-center font-headline font-bold text-xs border-2 transition-all ${
             selectedInMode
               ? 'bg-primary text-on-primary border-primary-fixed shadow-[0_0_12px_rgba(136,217,130,0.5)]'
-              : goals > 0 || assisted
+              : goals > 0 || assists > 0
                 ? 'bg-[#1c1c1c] text-primary border-primary/50'
                 : `bg-[#1c1c1c] text-white/80 border-white/20${tappable ? ' group-hover:border-primary/60' : ''}`
           }${!tappable && !selectedInMode ? ' opacity-40' : ''}`}
@@ -352,18 +361,18 @@ function PlayerChip({
           ⚽{goals > 1 ? goals : ''}
         </span>
       )}
-      {assisted && (
+      {assists > 0 && (
         <span className={`absolute -right-0.5 min-w-4 h-4 px-0.5 rounded-full bg-purple-400 text-black text-[9px] font-bold flex items-center justify-center pointer-events-none ${goals > 0 ? 'top-3' : '-top-1.5'}`}>
-          🎯
+          🎯{assists > 1 ? assists : ''}
         </span>
       )}
 
-      {/* Botón restar gol (solo en modo gol) */}
-      {!readonly && mode === 'goal' && goals > 0 && (
+      {/* Botón restar (gol o asistencia, según el modo activo) */}
+      {!readonly && countInMode > 0 && (
         <button
           type="button"
-          onClick={() => onDecrementScorer(player.id)}
-          aria-label={`Quitar gol a ${player.name}`}
+          onClick={() => (mode === 'goal' ? onDecrementScorer(player.id) : onDecrementAssister(player.id))}
+          aria-label={mode === 'goal' ? `Quitar gol a ${player.name}` : `Quitar asistencia a ${player.name}`}
           className="absolute -top-1.5 -left-0.5 w-4 h-4 rounded-full bg-error text-on-error text-[11px] font-bold flex items-center justify-center leading-none"
         >
           −
