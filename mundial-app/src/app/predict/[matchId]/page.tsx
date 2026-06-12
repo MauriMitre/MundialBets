@@ -1,7 +1,9 @@
+import { Suspense } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 import PredictionForm from './PredictionForm'
 import AllPredictions from './AllPredictions'
+import MatchGuide from './MatchGuide'
 import { isBettingOpen } from '@/lib/utils'
 import { STAGE_LABELS, isKnockout } from '@/types'
 import { flagUrl } from '@/lib/flags'
@@ -146,6 +148,20 @@ export default async function PredictPage({ params }: Props) {
           profiles={allProfiles}
           currentUserId={user.id}
         />
+      )}
+
+      {/* Guía pre-apuesta: racha y goleadores, solo mientras se puede apostar */}
+      {canPredict && (
+        <Suspense
+          fallback={
+            <div className="bg-surface-container-low rounded-xl p-4 sm:p-6 animate-pulse">
+              <div className="h-4 w-40 bg-white/10 rounded mb-3" />
+              <div className="h-16 bg-white/5 rounded" />
+            </div>
+          }
+        >
+          <MatchGuide match={match} />
+        </Suspense>
       )}
 
       {/* Formulario de predicción: editable con apuestas abiertas,
