@@ -27,6 +27,16 @@ Supabase pg_cron):
 
 ## Hecho
 
+- ~~Fix: el form de resultados y el admin de jugadores cargaban los
+  1243 players en un select (cap de 1000 de Supabase) — faltaban ~243
+  jugadores al cargar goleadores. Paginado con fetchAllRows()~~
+  (2026-06-11)
+
+- ~~Planteles sincronizados con los oficiales (Wikipedia, 26 por
+  selección): scripts/sync-squads.mjs con dry-run/--apply. Altas con
+  posición+dorsal, bajas con is_active=false (conservan apuestas),
+  renombres por alias conservan el id~~ (2026-06-11)
+
 - ~~Ver las apuestas de los demás al cerrar las apuestas: sección
   "Las apuestas de todos" en la página del partido, con marcador,
   goleadores/asistentes, puntos y quiénes no apostaron. La RLS ya

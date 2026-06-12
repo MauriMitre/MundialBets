@@ -1,24 +1,35 @@
 import { createClient } from '@/lib/supabase/server'
+import { fetchAllRows } from '@/lib/supabase/fetchAll'
 import ResultsList from './ResultsList'
 
 export default async function AdminResultsPage() {
   const supabase = await createClient()
 
-  const [{ data: matches }, { data: allPlayers }, { data: allEvents }] = await Promise.all([
+  // players (1243) y match_events superan el límite de 1000 filas
+  // por select de Supabase: paginar
+  const [{ data: matches }, allPlayers, allEvents] = await Promise.all([
     supabase
       .from('matches')
       .select(`*, homeTeam:home_team_id(id,name), awayTeam:away_team_id(id,name)`)
       .in('status', ['upcoming', 'live', 'finished'])
       .order('match_date', { ascending: false }),
-    supabase
-      .from('players')
-      .select('id, name, team_id, shirt_number')
-      .eq('is_active', true)
-      .order('name'),
-    supabase
-      .from('match_events')
-      .select('match_id, player_id, event_type, minute')
-      .order('minute', { ascending: true }),
+    fetchAllRows((from, to) =>
+      supabase
+        .from('players')
+        .select('id, name, team_id, shirt_number')
+        .eq('is_active', true)
+        .order('name')
+        .order('id')
+        .range(from, to)
+    ),
+    fetchAllRows((from, to) =>
+      supabase
+        .from('match_events')
+        .select('match_id, player_id, event_type, minute')
+        .order('minute', { ascending: true, nullsFirst: false })
+        .order('id')
+        .range(from, to)
+    ),
   ])
 
   return (
@@ -29,7 +40,7 @@ export default async function AdminResultsPage() {
           Al guardar el resultado se calculan los puntos automáticamente para todos los usuarios.
         </p>
       </div>
-      <ResultsList matches={matches ?? []} allPlayers={allPlayers ?? []} allEvents={allEvents ?? []} />
+      <ResultsList matches={matches ?? []} allPlayers={allPlayers} allEvents={allEvents} />
     </div>
   )
 }

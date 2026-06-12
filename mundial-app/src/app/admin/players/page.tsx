@@ -1,12 +1,21 @@
 import { createClient } from '@/lib/supabase/server'
+import { fetchAllRows } from '@/lib/supabase/fetchAll'
 import PlayersManager from './PlayersManager'
 
 export default async function AdminPlayersPage() {
   const supabase = await createClient()
 
-  const [{ data: teams }, { data: players }] = await Promise.all([
+  // players (1243) supera el límite de 1000 filas por select: paginar
+  const [{ data: teams }, players] = await Promise.all([
     supabase.from('teams').select('id, name, code').order('name'),
-    supabase.from('players').select('id, name, team_id, position, shirt_number, is_active').order('name'),
+    fetchAllRows((from, to) =>
+      supabase
+        .from('players')
+        .select('id, name, team_id, position, shirt_number, is_active')
+        .order('name')
+        .order('id')
+        .range(from, to)
+    ),
   ])
 
   return (
@@ -15,7 +24,7 @@ export default async function AdminPlayersPage() {
       <p className="text-white/40 text-sm -mt-2">
         Seleccioná un equipo para ver y gestionar sus jugadores.
       </p>
-      <PlayersManager teams={teams ?? []} players={players ?? []} />
+      <PlayersManager teams={teams ?? []} players={players} />
     </div>
   )
 }
