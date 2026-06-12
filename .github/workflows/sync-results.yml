@@ -1,0 +1,23 @@
+# Respaldo del pg_cron de Supabase (que está fallando, ver
+# supabase/migration_auto_results.sql): llama a la ruta de carga
+# automática de resultados cada 10 minutos.
+#
+# TODO: el secret está hardcodeado porque el repo quedó público y no
+# había gh CLI para crear el GitHub Secret — la ruta solo dispara un
+# sync idempotente (no puede escribir datos arbitrarios), pero igual
+# conviene rotar SYNC_SECRET en Vercel/.env y pasarlo a
+# ${{ secrets.SYNC_SECRET }} cuando se pueda.
+name: Sync results
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Llamar a /api/sync-results
+        run: |
+          curl -sS --max-time 120 "https://mundial-bets.vercel.app/api/sync-results?secret=f0b62ba0eed24632a52912bca329838a12c01369593f473cac1e76e763a16d47"
