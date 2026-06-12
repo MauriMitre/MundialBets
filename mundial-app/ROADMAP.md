@@ -3,19 +3,17 @@
 Ideas anotadas el 2026-06-09 (dos días antes del arranque del Mundial).
 Ordenadas por impacto.
 
-## 1. Carga automática de resultados ⭐
+## 1. Carga automática de resultados — falta puesta en marcha ⭐
 
-Son 104 partidos y hoy el admin carga a mano resultado + goleadores +
-asistencias de cada uno. Integrar una API de fútbol (football-data.org
-o API-Football, ambas con plan gratuito) más un cron (Vercel cron o
-Supabase pg_cron):
+Código listo (API-Football + pg_cron). Pendiente de configuración:
 
-- Al terminar cada partido se cargan marcador y eventos automáticamente
-  y se disparan los cálculos de puntos existentes.
-- Dejar un paso de revisión manual opcional en el admin por si la API
-  trae datos raros.
-- **Esfuerzo:** medio. **Impacto:** la mayor mejora operativa — ahorra
-  un mes de carga manual y los puntos salen la misma noche.
+1. Pegar `supabase/migration_auto_results.sql` en el SQL Editor.
+2. API key gratis en dashboard.api-football.com → `API_FOOTBALL_KEY`
+   en `.env` y en Vercel (junto con `SYNC_SECRET`, ya está en `.env`).
+3. `node scripts/map-api-ids.mjs --apply` (~50 requests de 100/día).
+   Re-ejecutar al definirse los cruces de eliminatorias (~27/06).
+4. Pegar el bloque pg_cron de la migración con la URL de Vercel y el
+   secret reales.
 
 ## 2. Mejoras menores
 
