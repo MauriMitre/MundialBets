@@ -5,8 +5,8 @@ import { formatMatchDate } from '@/lib/utils'
 import { STAGE_LABELS } from '@/types'
 
 interface Profile { id: string; username: string; displayName: string | null; totalPoints: number }
-interface PredPlayer { player_id: string; event_type: string }
-interface MatchEvent  { match_id: string; player_id: string; event_type: string }
+interface PredPlayer { player_id: string; event_type: string; player: { name: string } | null }
+export interface MatchEvent  { match_id: string; player_id: string; event_type: string; player: { name: string } | null }
 export interface Prediction {
   id: string
   user_id: string
@@ -78,6 +78,64 @@ function getBreakdown(pred: Prediction, events: MatchEvent[]) {
     .reduce((sum, [pid, count]) => sum + Math.min(count, assistCounts[pid] ?? 0), 0)
 
   return { correctWinner, exactScore, correctScorers, correctAssists, correctPenalties }
+}
+
+interface NamedCount { id: string; name: string; count: number; hit: boolean }
+
+// Listas con nombres: lo que pasó en la cancha y lo que apostó el usuario.
+// En los predichos, `hit` marca si ese jugador realmente hizo el evento.
+function getPlayerLists(pred: Prediction, events: MatchEvent[]) {
+  const forMatch = events.filter(e => e.match_id === pred.match_id)
+
+  function tally(rows: { player_id: string; event_type: string; player: { name: string } | null }[], type: string) {
+    const map: Record<string, NamedCount> = {}
+    for (const r of rows) {
+      if (r.event_type !== type) continue
+      if (!map[r.player_id]) map[r.player_id] = { id: r.player_id, name: r.player?.name ?? 'Jugador', count: 0, hit: false }
+      map[r.player_id].count++
+    }
+    return map
+  }
+
+  const realGoals   = tally(forMatch, 'goal')
+  const realAssists = tally(forMatch, 'assist')
+  const predGoals   = tally(pred.predPlayers, 'goal')
+  const predAssists = tally(pred.predPlayers, 'assist')
+
+  // Marcar aciertos en los predichos
+  for (const g of Object.values(predGoals))   g.hit = !!realGoals[g.id]
+  for (const a of Object.values(predAssists)) a.hit = !!realAssists[a.id]
+
+  return {
+    realGoals:   Object.values(realGoals),
+    realAssists: Object.values(realAssists),
+    predGoals:   Object.values(predGoals),
+    predAssists: Object.values(predAssists),
+  }
+}
+
+function PlayerLine({ icon, items, empty, mark = false }: {
+  icon: string
+  items: NamedCount[]
+  empty: string
+  mark?: boolean
+}) {
+  return (
+    <p className="flex gap-1.5 text-on-surface-variant/80 leading-relaxed">
+      <span className="shrink-0">{icon}</span>
+      {items.length === 0 ? (
+        <span className="text-on-surface-variant/30">{empty}</span>
+      ) : (
+        <span className="flex flex-wrap gap-x-2 gap-y-0.5">
+          {items.map(it => (
+            <span key={it.id} className={mark ? (it.hit ? 'text-green-400' : 'text-on-surface-variant/50') : ''}>
+              {mark && (it.hit ? '✓ ' : '✗ ')}{it.name}{it.count > 1 ? ` ×${it.count}` : ''}
+            </span>
+          ))}
+        </span>
+      )}
+    </p>
+  )
 }
 
 export interface ScoringValues {
@@ -174,6 +232,7 @@ export default function PointsPanel({
         ) : (
           userPreds.map(pred => {
             const { correctWinner, exactScore, correctScorers, correctAssists, correctPenalties } = getBreakdown(pred, matchEvents)
+            const { realGoals, realAssists, predGoals, predAssists } = getPlayerLists(pred, matchEvents)
             const stage = STAGE_LABELS[pred.match.stage as keyof typeof STAGE_LABELS] ?? pred.match.stage
 
             return (
@@ -194,12 +253,6 @@ export default function PointsPanel({
                     <p className="text-on-surface-variant/50 text-xs mt-0.5 font-label">
                       {formatMatchDate(pred.match.match_date)} · {stage}
                       {pred.match.group_name && ` G${pred.match.group_name}`}
-                    </p>
-                    <p className="text-on-surface-variant/30 text-xs mt-0.5 font-label">
-                      Predijo: {pred.predicted_home_score ?? '?'} – {pred.predicted_away_score ?? '?'}
-                      {pred.predicted_penalty_home_score !== null && (
-                        <> · pen {pred.predicted_penalty_home_score}-{pred.predicted_penalty_away_score}</>
-                      )}
                     </p>
                   </div>
                   <div className="shrink-0 ml-4 text-right">
@@ -235,6 +288,26 @@ export default function PointsPanel({
                       ✓ {correctAssists} asistente{correctAssists > 1 ? 's' : ''} +{correctAssists * scoring.assist}
                     </span>
                   )}
+                </div>
+
+                {/* Detalle: lo que pasó en la cancha vs lo que se apostó */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3 pt-3 border-t border-outline-variant/10 text-[11px] font-label">
+                  <div className="space-y-1">
+                    <p className="uppercase tracking-wider text-on-surface-variant/40">En la cancha</p>
+                    <PlayerLine icon="⚽" items={realGoals} empty="Sin goles" />
+                    <PlayerLine icon="🎯" items={realAssists} empty="Sin asistencias" />
+                  </div>
+                  <div className="space-y-1 sm:border-l border-outline-variant/10 sm:pl-3">
+                    <p className="uppercase tracking-wider text-on-surface-variant/40">Apostó</p>
+                    <p className="text-on-surface-variant/80">
+                      📋 {pred.predicted_home_score ?? '?'} – {pred.predicted_away_score ?? '?'}
+                      {pred.predicted_penalty_home_score !== null && (
+                        <span className="text-on-surface-variant/50"> · pen {pred.predicted_penalty_home_score}-{pred.predicted_penalty_away_score}</span>
+                      )}
+                    </p>
+                    <PlayerLine icon="⚽" items={predGoals} empty="Sin goleadores" mark />
+                    <PlayerLine icon="🎯" items={predAssists} empty="Sin asistentes" mark />
+                  </div>
                 </div>
               </div>
             )

@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { flagUrl } from '@/lib/flags'
 import { argDateKey } from '@/lib/utils'
 import Countdown from '@/components/ui/Countdown'
-import PointsPanel, { type Prediction as ScoredPrediction, type ScoringValues } from './PointsPanel'
+import PointsPanel, { type Prediction as ScoredPrediction, type ScoringValues, type MatchEvent } from './PointsPanel'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -66,13 +66,13 @@ export default async function DashboardPage() {
           homeTeam:home_team_id(name, code),
           awayTeam:away_team_id(name, code)
         ),
-        predPlayers:prediction_players(player_id, event_type)
+        predPlayers:prediction_players(player_id, event_type, player:players(name))
       `)
       .eq('is_scored', true)
       .gt('points_earned', 0),
     supabase
       .from('match_events')
-      .select('match_id, player_id, event_type'),
+      .select('match_id, player_id, event_type, player:players(name)'),
     supabase
       .from('scoring_rules')
       .select('rule_key, points'),
@@ -388,7 +388,7 @@ export default async function DashboardPage() {
           <PointsPanel
             profiles={allProfiles}
             predictions={(scoredPreds ?? []) as unknown as ScoredPrediction[]}
-            matchEvents={matchEvents ?? []}
+            matchEvents={(matchEvents ?? []) as unknown as MatchEvent[]}
             currentUserId={user.id}
             scoring={scoring}
           />

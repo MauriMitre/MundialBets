@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import PointsHistory, { type Prediction } from './PointsHistory'
+import PointsHistory, { type Prediction, type MatchEvent } from './PointsHistory'
 
 export default async function AdminPointsPage() {
   const supabase = await createClient()
@@ -29,14 +29,14 @@ export default async function AdminPointsPage() {
           homeTeam:home_team_id(name, code),
           awayTeam:away_team_id(name, code)
         ),
-        predPlayers:prediction_players(player_id, event_type)
+        predPlayers:prediction_players(player_id, event_type, player:players(name))
       `)
       .eq('is_scored', true)
       .gt('points_earned', 0),
 
     supabase
       .from('match_events')
-      .select('match_id, player_id, event_type'),
+      .select('match_id, player_id, event_type, player:players(name)'),
 
     supabase
       .from('scoring_rules')
@@ -64,7 +64,7 @@ export default async function AdminPointsPage() {
       <PointsHistory
         profiles={profiles ?? []}
         predictions={(predictions ?? []) as unknown as Prediction[]}
-        matchEvents={matchEvents ?? []}
+        matchEvents={(matchEvents ?? []) as unknown as MatchEvent[]}
         scoring={scoring}
       />
     </div>

@@ -5,8 +5,8 @@ import { formatMatchDate } from '@/lib/utils'
 import { STAGE_LABELS } from '@/types'
 
 interface Profile { id: string; username: string; display_name: string | null }
-interface PredPlayer { player_id: string; event_type: string }
-interface MatchEvent  { match_id: string; player_id: string; event_type: string }
+interface PredPlayer { player_id: string; event_type: string; player: { name: string } | null }
+export interface MatchEvent  { match_id: string; player_id: string; event_type: string; player: { name: string } | null }
 export interface Prediction {
   id: string
   user_id: string
@@ -88,6 +88,63 @@ function getBreakdown(pred: Prediction, events: MatchEvent[]) {
   return { correctWinner, exactScore, correctScorers, correctAssists, correctPenalties }
 }
 
+interface NamedCount { id: string; name: string; count: number; hit: boolean }
+
+// Listas con nombres: lo que pasó en la cancha y lo que apostó el usuario.
+// En los predichos, `hit` marca si ese jugador realmente hizo el evento.
+function getPlayerLists(pred: Prediction, events: MatchEvent[]) {
+  const forMatch = events.filter(e => e.match_id === pred.match_id)
+
+  function tally(rows: { player_id: string; event_type: string; player: { name: string } | null }[], type: string) {
+    const map: Record<string, NamedCount> = {}
+    for (const r of rows) {
+      if (r.event_type !== type) continue
+      if (!map[r.player_id]) map[r.player_id] = { id: r.player_id, name: r.player?.name ?? 'Jugador', count: 0, hit: false }
+      map[r.player_id].count++
+    }
+    return map
+  }
+
+  const realGoals   = tally(forMatch, 'goal')
+  const realAssists = tally(forMatch, 'assist')
+  const predGoals   = tally(pred.predPlayers, 'goal')
+  const predAssists = tally(pred.predPlayers, 'assist')
+
+  for (const g of Object.values(predGoals))   g.hit = !!realGoals[g.id]
+  for (const a of Object.values(predAssists)) a.hit = !!realAssists[a.id]
+
+  return {
+    realGoals:   Object.values(realGoals),
+    realAssists: Object.values(realAssists),
+    predGoals:   Object.values(predGoals),
+    predAssists: Object.values(predAssists),
+  }
+}
+
+function PlayerLine({ icon, items, empty, mark = false }: {
+  icon: string
+  items: NamedCount[]
+  empty: string
+  mark?: boolean
+}) {
+  return (
+    <p className="flex gap-1.5 text-secondary/70 leading-relaxed">
+      <span className="shrink-0">{icon}</span>
+      {items.length === 0 ? (
+        <span className="text-secondary/30">{empty}</span>
+      ) : (
+        <span className="flex flex-wrap gap-x-2 gap-y-0.5">
+          {items.map(it => (
+            <span key={it.id} className={mark ? (it.hit ? 'text-green-400' : 'text-secondary/40') : ''}>
+              {mark && (it.hit ? '✓ ' : '✗ ')}{it.name}{it.count > 1 ? ` ×${it.count}` : ''}
+            </span>
+          ))}
+        </span>
+      )}
+    </p>
+  )
+}
+
 export default function PointsHistory({
   predictions,
   matchEvents,
@@ -154,6 +211,7 @@ export default function PointsHistory({
         <div className="space-y-3">
           {userPreds.map(pred => {
             const { correctWinner, exactScore, correctScorers, correctAssists, correctPenalties } = getBreakdown(pred, matchEvents)
+            const { realGoals, realAssists, predGoals, predAssists } = getPlayerLists(pred, matchEvents)
             const stageLabel = STAGE_LABELS[pred.match.stage as keyof typeof STAGE_LABELS] ?? pred.match.stage
 
             return (
@@ -167,10 +225,6 @@ export default function PointsHistory({
                     <p className="text-secondary/40 text-xs mt-0.5">
                       {formatMatchDate(pred.match.match_date)} · {stageLabel}
                       {pred.match.group_name && ` G${pred.match.group_name}`}
-                    </p>
-                    <p className="text-secondary/30 text-xs mt-0.5">
-                      Predijo: {pred.predicted_home_score ?? '?'} – {pred.predicted_away_score ?? '?'}
-                      {' '}({pred.predicted_winner === 'home' ? pred.match.homeTeam.name : pred.predicted_winner === 'away' ? pred.match.awayTeam.name : 'Empate'})
                     </p>
                   </div>
                   <div className="shrink-0 ml-4 text-right">
@@ -206,6 +260,27 @@ export default function PointsHistory({
                       ✓ {correctAssists} asistente{correctAssists > 1 ? 's' : ''} +{correctAssists * scoring.assist}
                     </span>
                   )}
+                </div>
+
+                {/* Detalle: lo que pasó en la cancha vs lo que se apostó */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3 pt-3 border-t border-white/5 text-xs">
+                  <div className="space-y-1">
+                    <p className="uppercase tracking-wide text-secondary/40">En la cancha</p>
+                    <PlayerLine icon="⚽" items={realGoals} empty="Sin goles" />
+                    <PlayerLine icon="🎯" items={realAssists} empty="Sin asistencias" />
+                  </div>
+                  <div className="space-y-1 sm:border-l border-white/5 sm:pl-3">
+                    <p className="uppercase tracking-wide text-secondary/40">Apostó</p>
+                    <p className="text-secondary/70">
+                      📋 {pred.predicted_home_score ?? '?'} – {pred.predicted_away_score ?? '?'}
+                      {' '}({pred.predicted_winner === 'home' ? pred.match.homeTeam.name : pred.predicted_winner === 'away' ? pred.match.awayTeam.name : 'Empate'})
+                      {pred.predicted_penalty_home_score !== null && (
+                        <span className="text-secondary/40"> · pen {pred.predicted_penalty_home_score}-{pred.predicted_penalty_away_score}</span>
+                      )}
+                    </p>
+                    <PlayerLine icon="⚽" items={predGoals} empty="Sin goleadores" mark />
+                    <PlayerLine icon="🎯" items={predAssists} empty="Sin asistentes" mark />
+                  </div>
                 </div>
               </div>
             )
