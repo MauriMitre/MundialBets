@@ -80,10 +80,11 @@ function getBreakdown(pred: Prediction, events: MatchEvent[]) {
   return { correctWinner, exactScore, correctScorers, correctAssists, correctPenalties }
 }
 
-interface NamedCount { id: string; name: string; count: number; hit: boolean }
+interface NamedCount { id: string; name: string; count: number; hitCount: number }
 
 // Listas con nombres: lo que pasó en la cancha y lo que apostó el usuario.
-// En los predichos, `hit` marca si ese jugador realmente hizo el evento.
+// En los predichos, `hitCount` = cuántos de los apostados realmente ocurrieron
+// (min entre apostados y reales): apostar doblete y meter 1 cuenta como 1/2.
 function getPlayerLists(pred: Prediction, events: MatchEvent[]) {
   const forMatch = events.filter(e => e.match_id === pred.match_id)
 
@@ -91,7 +92,7 @@ function getPlayerLists(pred: Prediction, events: MatchEvent[]) {
     const map: Record<string, NamedCount> = {}
     for (const r of rows) {
       if (r.event_type !== type) continue
-      if (!map[r.player_id]) map[r.player_id] = { id: r.player_id, name: r.player?.name ?? 'Jugador', count: 0, hit: false }
+      if (!map[r.player_id]) map[r.player_id] = { id: r.player_id, name: r.player?.name ?? 'Jugador', count: 0, hitCount: 0 }
       map[r.player_id].count++
     }
     return map
@@ -102,9 +103,9 @@ function getPlayerLists(pred: Prediction, events: MatchEvent[]) {
   const predGoals   = tally(pred.predPlayers, 'goal')
   const predAssists = tally(pred.predPlayers, 'assist')
 
-  // Marcar aciertos en los predichos
-  for (const g of Object.values(predGoals))   g.hit = !!realGoals[g.id]
-  for (const a of Object.values(predAssists)) a.hit = !!realAssists[a.id]
+  // Aciertos por jugador = min(apostados, reales)
+  for (const g of Object.values(predGoals))   g.hitCount = Math.min(g.count, realGoals[g.id]?.count ?? 0)
+  for (const a of Object.values(predAssists)) a.hitCount = Math.min(a.count, realAssists[a.id]?.count ?? 0)
 
   return {
     realGoals:   Object.values(realGoals),
@@ -127,11 +128,20 @@ function PlayerLine({ icon, items, empty, mark = false }: {
         <span className="text-on-surface-variant/30">{empty}</span>
       ) : (
         <span className="flex flex-wrap gap-x-2 gap-y-0.5">
-          {items.map(it => (
-            <span key={it.id} className={mark ? (it.hit ? 'text-green-400' : 'text-on-surface-variant/50') : ''}>
-              {mark && (it.hit ? '✓ ' : '✗ ')}{it.name}{it.count > 1 ? ` ×${it.count}` : ''}
-            </span>
-          ))}
+          {items.map(it => {
+            if (!mark) {
+              return <span key={it.id}>{it.name}{it.count > 1 ? ` ×${it.count}` : ''}</span>
+            }
+            // Verde = apostado completo; amarillo = parcial; gris = no acertó
+            const cls = it.hitCount === 0 ? 'text-on-surface-variant/50'
+              : it.hitCount >= it.count ? 'text-green-400' : 'text-yellow-400'
+            const frac = it.count > 1 ? ` ${it.hitCount}/${it.count}` : ''
+            return (
+              <span key={it.id} className={cls}>
+                {it.hitCount > 0 ? '✓ ' : '✗ '}{it.name}{frac}
+              </span>
+            )
+          })}
         </span>
       )}
     </p>
