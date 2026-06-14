@@ -292,23 +292,34 @@ BEGIN
     pts := pts + rule_exact;
   END IF;
 
-  -- Puntos por goleadores predichos
-  SELECT COUNT(*) INTO scorer_match
-  FROM prediction_players pp
-  JOIN match_events me ON me.player_id = pp.player_id
-    AND me.match_id = match.id
-    AND me.event_type = 'goal'
-  WHERE pp.prediction_id = pred.id AND pp.event_type = 'goal';
+  -- Puntos por goleadores predichos: por jugador, se acreditan como máximo
+  -- tantos goles como realmente hizo (LEAST), nunca el producto predicho×real
+  SELECT COALESCE(SUM(LEAST(pp.cnt, me.cnt)), 0) INTO scorer_match
+  FROM (
+    SELECT p.player_id, COUNT(*) AS cnt FROM prediction_players p
+    WHERE p.prediction_id = pred.id AND p.event_type = 'goal'
+    GROUP BY p.player_id
+  ) pp
+  JOIN (
+    SELECT player_id, COUNT(*) AS cnt FROM match_events
+    WHERE match_id = match.id AND event_type = 'goal'
+    GROUP BY player_id
+  ) me ON me.player_id = pp.player_id;
 
   pts := pts + (scorer_match * rule_scorer);
 
-  -- Puntos por asistentes predichos
-  SELECT COUNT(*) INTO assist_match
-  FROM prediction_players pp
-  JOIN match_events me ON me.player_id = pp.player_id
-    AND me.match_id = match.id
-    AND me.event_type = 'assist'
-  WHERE pp.prediction_id = pred.id AND pp.event_type = 'assist';
+  -- Puntos por asistentes predichos: misma lógica (LEAST por jugador)
+  SELECT COALESCE(SUM(LEAST(pp.cnt, me.cnt)), 0) INTO assist_match
+  FROM (
+    SELECT p.player_id, COUNT(*) AS cnt FROM prediction_players p
+    WHERE p.prediction_id = pred.id AND p.event_type = 'assist'
+    GROUP BY p.player_id
+  ) pp
+  JOIN (
+    SELECT player_id, COUNT(*) AS cnt FROM match_events
+    WHERE match_id = match.id AND event_type = 'assist'
+    GROUP BY player_id
+  ) me ON me.player_id = pp.player_id;
 
   pts := pts + (assist_match * rule_assist);
 

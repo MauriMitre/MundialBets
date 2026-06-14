@@ -38,7 +38,8 @@
       "Bash(python -c ' *)",
       "Bash(cp /tmp/test-espn-parse.mjs /c/MundialBets/mundial-app/test-espn-parse.tmp.mjs)",
       "Bash(node test-espn-parse.tmp.mjs)",
-      "Bash(curl *)"
+      "Bash(curl *)",
+      "Bash(node scripts/inspect-fn.mjs)"
     ]
   }
 }
