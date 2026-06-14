@@ -171,7 +171,7 @@ export default async function DashboardPage() {
                   : `Te faltan ${pendingToday} apuestas para hoy`}
               </p>
               <p className="text-xs text-on-surface-variant truncate">
-                Las apuestas cierran 30 minutos antes de cada partido
+                Las apuestas cierran 15 minutos antes de cada partido
               </p>
             </div>
           </div>

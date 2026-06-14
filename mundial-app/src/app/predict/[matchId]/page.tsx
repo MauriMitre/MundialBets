@@ -181,7 +181,7 @@ export default async function PredictPage({ params }: Props) {
       {!canPredict && !isFinished && !prediction && (
         <div className="card p-6 text-center text-white/40">
           <p className="text-3xl mb-2">⏰</p>
-          <p>Las apuestas cerraron 30 minutos antes del partido</p>
+          <p>Las apuestas cerraron 15 minutos antes del partido</p>
         </div>
       )}
     </div>

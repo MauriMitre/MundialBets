@@ -39,7 +39,7 @@ CREATE TABLE matches (
   home_team_id UUID NOT NULL REFERENCES teams(id),
   away_team_id UUID NOT NULL REFERENCES teams(id),
   match_date TIMESTAMPTZ NOT NULL,
-  betting_closes_at TIMESTAMPTZ,  -- se calcula automáticamente: match_date - 30 min
+  betting_closes_at TIMESTAMPTZ,  -- se calcula automáticamente: match_date - 15 min
   stage TEXT NOT NULL CHECK (stage IN ('group', 'round_of_16', 'quarter', 'semi', 'third_place', 'final')),
   group_name CHAR(1),  -- solo fase de grupos
   venue TEXT,
@@ -236,7 +236,7 @@ CREATE TRIGGER on_auth_user_created
 CREATE OR REPLACE FUNCTION set_betting_closes_at()
 RETURNS TRIGGER AS $$
 BEGIN
-  NEW.betting_closes_at := NEW.match_date - INTERVAL '30 minutes';
+  NEW.betting_closes_at := NEW.match_date - INTERVAL '15 minutes';
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;

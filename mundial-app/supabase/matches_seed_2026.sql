@@ -2,7 +2,7 @@
 -- FIXTURE REAL MUNDIAL 2026 — Fase de grupos (72 partidos)
 -- Ejecutar DESPUÉS de seed_real_2026.sql
 -- Pegar en: Supabase Dashboard > SQL Editor
--- betting_closes_at se calcula solo (trigger: match_date - 30 min)
+-- betting_closes_at se calcula solo (trigger: match_date - 15 min)
 --
 -- Horarios: hora LOCAL de cada sede con offset UTC explícito.
 -- Offsets junio 2026: México UTC-6 (sin DST) | ET UTC-4 | CT UTC-5 | PT UTC-7

@@ -152,7 +152,7 @@ export default function RulesPage() {
           <div className="bg-surface-container-low rounded-xl p-6">
             <h3 className="font-headline text-lg font-bold text-on-surface mb-3">¿Hasta cuándo puedo apostar?</h3>
             <p className="text-on-surface-variant font-body leading-relaxed">
-              Las predicciones cierran <span className="text-on-surface font-semibold">30 minutos antes</span> del inicio de cada partido. Una vez cerrado no se pueden modificar.
+              Las predicciones cierran <span className="text-on-surface font-semibold">15 minutos antes</span> del inicio de cada partido. Una vez cerrado no se pueden modificar.
             </p>
           </div>
 
