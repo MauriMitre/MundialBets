@@ -62,8 +62,8 @@ function getBreakdown(pred: Prediction, events: MatchEvent[]) {
     pred.predicted_penalty_home_score === penalty_home_score &&
     pred.predicted_penalty_away_score === penalty_away_score
 
-  // Igual que calculate_prediction_points: cada fila predicha suma una vez
-  // POR CADA evento real que matchea (multiplicidad, no jugadores únicos)
+  // Aciertos por jugador = min(veces predichas, eventos reales). Predecir 2
+  // goles de un jugador que metió 1 cuenta como 1 acierto, no como 2.
   const eventsForMatch = events.filter(e => e.match_id === pred.match_id)
   const goalCounts: Record<string, number> = {}
   const assistCounts: Record<string, number> = {}
@@ -72,12 +72,18 @@ function getBreakdown(pred: Prediction, events: MatchEvent[]) {
     if (e.event_type === 'assist') assistCounts[e.player_id] = (assistCounts[e.player_id] ?? 0) + 1
   }
 
-  const correctScorers = pred.predPlayers
-    .filter(p => p.event_type === 'goal')
-    .reduce((sum, p) => sum + (goalCounts[p.player_id] ?? 0), 0)
-  const correctAssists = pred.predPlayers
-    .filter(p => p.event_type === 'assist')
-    .reduce((sum, p) => sum + (assistCounts[p.player_id] ?? 0), 0)
+  // Contar cuántas veces el usuario predijo cada jugador por tipo de evento
+  const predGoals: Record<string, number> = {}
+  const predAssists: Record<string, number> = {}
+  for (const p of pred.predPlayers) {
+    if (p.event_type === 'goal')   predGoals[p.player_id]   = (predGoals[p.player_id] ?? 0) + 1
+    if (p.event_type === 'assist') predAssists[p.player_id] = (predAssists[p.player_id] ?? 0) + 1
+  }
+
+  const correctScorers = Object.entries(predGoals)
+    .reduce((sum, [pid, count]) => sum + Math.min(count, goalCounts[pid] ?? 0), 0)
+  const correctAssists = Object.entries(predAssists)
+    .reduce((sum, [pid, count]) => sum + Math.min(count, assistCounts[pid] ?? 0), 0)
 
   return { correctWinner, exactScore, correctScorers, correctAssists, correctPenalties }
 }

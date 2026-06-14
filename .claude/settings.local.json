@@ -26,7 +26,19 @@
       "Bash(node -e ' *)",
       "WebFetch(domain:en.wikipedia.org)",
       "WebSearch",
-      "Bash(awk ' *)"
+      "Bash(awk ' *)",
+      "PowerShell(npx tsc --noEmit; npx eslint src/app/predict/[matchId]/)",
+      "PowerShell($conn = Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue; if \\($conn\\) { \"puerto 3000 ocupado por PID $\\($conn.OwningProcess\\)\" } else { \"puerto 3000 libre\" })",
+      "Bash(seq 1 30)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000/login)",
+      "Bash(break)",
+      "Bash(sleep 1)",
+      "PowerShell(git *)",
+      "Bash(curl -s \"https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/summary?event=760415\")",
+      "Bash(python -c ' *)",
+      "Bash(cp /tmp/test-espn-parse.mjs /c/MundialBets/mundial-app/test-espn-parse.tmp.mjs)",
+      "Bash(node test-espn-parse.tmp.mjs)",
+      "Bash(curl *)"
     ]
   }
 }
