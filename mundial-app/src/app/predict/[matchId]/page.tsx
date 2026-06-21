@@ -4,6 +4,7 @@ import { redirect, notFound } from 'next/navigation'
 import PredictionForm from './PredictionForm'
 import AllPredictions from './AllPredictions'
 import MatchGuide from './MatchGuide'
+import GroupStandings from './GroupStandings'
 import { isBettingOpen } from '@/lib/utils'
 import { STAGE_LABELS, isKnockout } from '@/types'
 import { flagUrl } from '@/lib/flags'
@@ -148,6 +149,24 @@ export default async function PredictPage({ params }: Props) {
           profiles={allProfiles}
           currentUserId={user.id}
         />
+      )}
+
+      {/* Tabla del grupo y resultados ya jugados (solo fase de grupos) */}
+      {canPredict && match.stage === 'group' && match.group_name && (
+        <Suspense
+          fallback={
+            <div className="bg-surface-container-low rounded-xl p-4 sm:p-6 animate-pulse">
+              <div className="h-4 w-40 bg-white/10 rounded mb-3" />
+              <div className="h-24 bg-white/5 rounded" />
+            </div>
+          }
+        >
+          <GroupStandings
+            groupName={match.group_name}
+            homeTeamId={match.home_team_id}
+            awayTeamId={match.away_team_id}
+          />
+        </Suspense>
       )}
 
       {/* Guía pre-apuesta: racha y goleadores, solo mientras se puede apostar */}
