@@ -1,53 +1,74 @@
-// Tabla del grupo y resultados ya jugados, para la previa de la apuesta.
-// Todo sale de nuestra DB (no ESPN): los partidos de fase de grupos con
-// su group_name y, si están 'finished', su marcador. La tabla de
-// posiciones se calcula al vuelo (3 pts victoria, 1 empate). Solo se
-// muestra en partidos de fase de grupos; en eliminatorias no aplica.
+// Página /groups: tabla de posiciones de cada grupo del Mundial, con sus
+// resultados ya jugados. Todo sale de nuestra DB (los marca el cron de
+// sync-results). Se recalcula al vuelo con el helper compartido.
 import { createClient } from '@/lib/supabase/server'
-import { flagUrl } from '@/lib/flags'
+import { redirect } from 'next/navigation'
 import { computeStandings } from '@/lib/standings'
+import { flagUrl } from '@/lib/flags'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-interface Props {
-  groupName: string
-  homeTeamId: string
-  awayTeamId: string
-}
-
-export default async function GroupStandings({ groupName, homeTeamId, awayTeamId }: Props) {
+export default async function GroupsPage() {
   const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
 
-  const { data: matches } = await supabase
+  const { data: matches, error } = await supabase
     .from('matches')
     .select(`
-      id, home_team_id, away_team_id, home_score, away_score, status, match_date,
+      id, group_name, home_team_id, away_team_id, home_score, away_score, status, match_date,
       homeTeam:home_team_id ( id, name, code ),
       awayTeam:away_team_id ( id, name, code )
     `)
     .eq('stage', 'group')
-    .eq('group_name', groupName)
+    .not('group_name', 'is', null)
     .order('match_date')
+  if (error) throw new Error(`Error cargando los grupos: ${error.message}`)
 
-  if (!matches || matches.length === 0) return null
+  // Agrupar por group_name
+  const byGroup = new Map<string, any[]>()
+  for (const m of (matches ?? []) as any[]) {
+    const arr = byGroup.get(m.group_name) ?? []
+    arr.push(m)
+    byGroup.set(m.group_name, arr)
+  }
+  const groups = [...byGroup.keys()].sort()
 
-  const rows = computeStandings(matches as any[])
+  return (
+    <div className="max-w-5xl mx-auto">
+      <div className="mb-6">
+        <h1 className="font-headline font-black text-2xl text-on-surface uppercase tracking-tight">
+          Grupos
+        </h1>
+        <p className="font-body text-sm text-on-surface-variant/60 mt-1">
+          Posiciones y resultados de la fase de grupos
+        </p>
+      </div>
 
-  // ── Resultados ya jugados ──
-  const played = (matches as any[]).filter(
+      {groups.length === 0 ? (
+        <div className="card p-6 text-center text-white/40">Todavía no hay grupos cargados</div>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2">
+          {groups.map(g => (
+            <GroupCard key={g} groupName={g} matches={byGroup.get(g)!} />
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function GroupCard({ groupName, matches }: { groupName: string; matches: any[] }) {
+  const rows = computeStandings(matches)
+  const played = matches.filter(
     m => m.status === 'finished' && m.home_score !== null && m.away_score !== null
   )
 
-  const isInMatch = (teamId: string) => teamId === homeTeamId || teamId === awayTeamId
-
   return (
-    <div className="bg-surface-container-low rounded-xl p-4 sm:p-6">
-      <h3 className="font-headline font-bold text-on-surface uppercase tracking-wide text-sm mb-1">
+    <div className="bg-surface-container-low rounded-xl p-4 sm:p-5">
+      <h2 className="font-headline font-bold text-on-surface uppercase tracking-wide text-sm mb-3">
         🏆 Grupo {groupName}
-      </h3>
-      <p className="font-body text-xs text-on-surface-variant/60 mb-4">
-        Cómo viene el grupo y los resultados de los partidos ya jugados
-      </p>
+      </h2>
 
       {/* Tabla de posiciones */}
       <div className="overflow-x-auto -mx-1">
@@ -67,12 +88,8 @@ export default async function GroupStandings({ groupName, homeTeamId, awayTeamId
           <tbody>
             {rows.map((r, i) => {
               const dg = r.gf - r.gc
-              const mine = isInMatch(r.teamId)
               return (
-                <tr
-                  key={r.teamId}
-                  className={`border-t border-white/5 ${mine ? 'bg-primary/10' : ''}`}
-                >
+                <tr key={r.teamId} className="border-t border-white/5">
                   <td className={`py-1.5 pl-1 ${i < 2 ? 'text-primary font-bold' : 'text-on-surface-variant/40'}`}>
                     {i + 1}
                   </td>
@@ -81,9 +98,7 @@ export default async function GroupStandings({ groupName, homeTeamId, awayTeamId
                       {flagUrl(r.code) && (
                         <img src={flagUrl(r.code, 40)} alt={r.code} className="w-4 h-4 rounded-full object-cover shrink-0" />
                       )}
-                      <span className={`truncate ${mine ? 'text-on-surface font-bold' : 'text-on-surface-variant/80'}`}>
-                        {r.code}
-                      </span>
+                      <span className="truncate text-on-surface-variant/80">{r.code}</span>
                     </span>
                   </td>
                   <td className="text-center text-on-surface-variant/60 py-1.5">{r.pj}</td>
@@ -106,19 +121,13 @@ export default async function GroupStandings({ groupName, homeTeamId, awayTeamId
             Resultados
           </p>
           <div className="space-y-1">
-            {played.map(m => {
-              const highlight = isInMatch(m.home_team_id) || isInMatch(m.away_team_id)
-              return (
-                <div
-                  key={m.id}
-                  className={`flex items-center justify-center gap-2 text-xs ${highlight ? 'text-on-surface' : 'text-on-surface-variant/60'}`}
-                >
-                  <span className="w-20 text-right truncate">{m.homeTeam?.code}</span>
-                  <span className="font-bold tabular-nums">{m.home_score} - {m.away_score}</span>
-                  <span className="w-20 text-left truncate">{m.awayTeam?.code}</span>
-                </div>
-              )
-            })}
+            {played.map(m => (
+              <div key={m.id} className="flex items-center justify-center gap-2 text-xs text-on-surface-variant/60">
+                <span className="w-20 text-right truncate">{m.homeTeam?.code}</span>
+                <span className="font-bold tabular-nums text-on-surface">{m.home_score} - {m.away_score}</span>
+                <span className="w-20 text-left truncate">{m.awayTeam?.code}</span>
+              </div>
+            ))}
           </div>
         </div>
       )}
