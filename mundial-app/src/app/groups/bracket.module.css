@@ -1,0 +1,206 @@
+/* Cuadro de eliminación tipo "árbol" (estilo 365scores): banderas en los
+   bordes, líneas que convergen hacia el centro (trofeo / campeón) y rondas
+   internas vacías (todavía no se juegan). Mitad izquierda y derecha
+   espejadas. Las líneas se dibujan con pseudo-elementos:
+   ::before = tramo horizontal desde el centro de cada llave
+   ::after  = media barra vertical (mitad superior o inferior del par)
+   que se unen exactamente en el centro de la llave de la ronda siguiente. */
+
+.wrap {
+  --gap: 16px;
+  --line: rgba(136, 217, 130, 0.28);
+  background:
+    radial-gradient(120% 90% at 50% 0%, rgba(136, 217, 130, 0.06) 0%, transparent 55%),
+    linear-gradient(160deg, var(--color-surface-container) 0%, var(--color-surface-container-lowest) 100%);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: 16px;
+  padding: 24px 16px;
+  overflow-x: auto;
+}
+
+.bracket {
+  display: flex;
+  align-items: stretch;
+  min-width: 360px;
+  min-height: 500px;
+  margin: 0 auto;
+  width: max-content;
+}
+
+.side {
+  display: flex;
+  align-items: stretch;
+}
+.left {
+  margin-right: var(--gap);
+}
+.right {
+  margin-left: var(--gap);
+}
+
+.round {
+  display: flex;
+  flex-direction: column;
+}
+.left .round:not(:last-child) {
+  margin-right: var(--gap);
+}
+.right .round:not(:first-child) {
+  margin-left: var(--gap);
+}
+
+.match {
+  position: relative;
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* ── Tramo horizontal (sale del centro de cada llave hacia el centro) ── */
+.left .round .match::before,
+.right .round .match::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: var(--gap);
+  border-top: 2px solid var(--line);
+}
+.left .round .match::before {
+  left: 100%;
+}
+.right .round .match::before {
+  right: 100%;
+}
+
+/* ── Barras verticales que unen cada par hacia la ronda siguiente ── */
+.left .round:not(:last-child) .match:nth-child(odd)::after,
+.left .round:not(:last-child) .match:nth-child(even)::after {
+  content: '';
+  position: absolute;
+  left: calc(100% + var(--gap));
+  height: 50%;
+  border-left: 2px solid var(--line);
+}
+.left .round:not(:last-child) .match:nth-child(odd)::after {
+  top: 50%;
+}
+.left .round:not(:last-child) .match:nth-child(even)::after {
+  bottom: 50%;
+}
+
+.right .round:not(:first-child) .match:nth-child(odd)::after,
+.right .round:not(:first-child) .match:nth-child(even)::after {
+  content: '';
+  position: absolute;
+  right: calc(100% + var(--gap));
+  height: 50%;
+  border-right: 2px solid var(--line);
+}
+.right .round:not(:first-child) .match:nth-child(odd)::after {
+  top: 50%;
+}
+.right .round:not(:first-child) .match:nth-child(even)::after {
+  bottom: 50%;
+}
+
+/* ── Llave con banderas (ronda externa = 16avos) ── */
+.flagMatch {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 5px 0;
+}
+.team {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  height: 20px;
+}
+.right .team {
+  flex-direction: row-reverse;
+}
+.flag {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.flagBlank {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
+}
+.code {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--color-on-surface);
+  width: 30px;
+}
+.right .code {
+  text-align: right;
+}
+.lbl {
+  font-size: 8px;
+  font-weight: 700;
+  color: var(--color-primary);
+  opacity: 0.75;
+  width: 15px;
+}
+
+/* ── Cajas vacías de las rondas internas ── */
+.box {
+  min-width: 28px;
+  height: 16px;
+  margin: auto 0;
+  border: 1px solid var(--color-outline-variant);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* ── Centro: campeón + trofeo ── */
+.center {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 0 6px;
+}
+.finalBox {
+  width: 38px;
+  height: 20px;
+  border: 1px solid var(--color-primary);
+  border-radius: 4px;
+  background: rgba(136, 217, 130, 0.08);
+}
+.champ {
+  position: absolute;
+  top: 0;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: var(--color-secondary-container);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.trophy {
+  margin-top: 12px;
+  font-size: 36px;
+  line-height: 1;
+}
+.runnerUp {
+  position: absolute;
+  bottom: 0;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--color-on-surface-variant);
+  opacity: 0.5;
+  text-transform: uppercase;
+  white-space: nowrap;
+}

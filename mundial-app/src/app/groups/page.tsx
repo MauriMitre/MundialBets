@@ -4,7 +4,9 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { computeStandings } from '@/lib/standings'
+import { resolveBracket } from '@/lib/knockout'
 import { flagUrl } from '@/lib/flags'
+import KnockoutBracket from './KnockoutBracket'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -34,6 +36,11 @@ export default async function GroupsPage() {
   }
   const groups = [...byGroup.keys()].sort()
 
+  // Tablas por grupo (reutilizadas para las posiciones y el cuadro de 16avos)
+  const standingsByGroup = new Map(groups.map(g => [g, computeStandings(byGroup.get(g)!)]))
+  // Solo tiene sentido el cuadro con los 12 grupos completos cargados
+  const bracket = groups.length === 12 ? resolveBracket(standingsByGroup) : null
+
   return (
     <div className="max-w-5xl mx-auto">
       <div className="mb-6">
@@ -50,16 +57,17 @@ export default async function GroupsPage() {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
           {groups.map(g => (
-            <GroupCard key={g} groupName={g} matches={byGroup.get(g)!} />
+            <GroupCard key={g} groupName={g} matches={byGroup.get(g)!} rows={standingsByGroup.get(g)!} />
           ))}
         </div>
       )}
+
+      {bracket && <KnockoutBracket matches={bracket} />}
     </div>
   )
 }
 
-function GroupCard({ groupName, matches }: { groupName: string; matches: any[] }) {
-  const rows = computeStandings(matches)
+function GroupCard({ groupName, matches, rows }: { groupName: string; matches: any[]; rows: ReturnType<typeof computeStandings> }) {
   const played = matches.filter(
     m => m.status === 'finished' && m.home_score !== null && m.away_score !== null
   )
