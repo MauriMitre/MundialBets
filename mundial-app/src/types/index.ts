@@ -1,4 +1,4 @@
-export type Stage = 'group' | 'round_of_16' | 'quarter' | 'semi' | 'third_place' | 'final'
+export type Stage = 'group' | 'round_of_32' | 'round_of_16' | 'quarter' | 'semi' | 'third_place' | 'final'
 export type MatchStatus = 'upcoming' | 'live' | 'finished'
 export type Position = 'GK' | 'DEF' | 'MID' | 'FWD'
 export type EventType = 'goal' | 'assist' | 'yellow_card' | 'red_card'
@@ -99,6 +99,7 @@ export interface ScoringRule {
 
 export const STAGE_LABELS: Record<Stage, string> = {
   group:        'Fase de Grupos',
+  round_of_32:  'Dieciseisavos de Final',
   round_of_16:  'Octavos de Final',
   quarter:      'Cuartos de Final',
   semi:         'Semifinal',

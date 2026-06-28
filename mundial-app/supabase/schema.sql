@@ -40,7 +40,7 @@ CREATE TABLE matches (
   away_team_id UUID NOT NULL REFERENCES teams(id),
   match_date TIMESTAMPTZ NOT NULL,
   betting_closes_at TIMESTAMPTZ,  -- se calcula automáticamente: match_date - 15 min
-  stage TEXT NOT NULL CHECK (stage IN ('group', 'round_of_16', 'quarter', 'semi', 'third_place', 'final')),
+  stage TEXT NOT NULL CHECK (stage IN ('group', 'round_of_32', 'round_of_16', 'quarter', 'semi', 'third_place', 'final')),
   group_name CHAR(1),  -- solo fase de grupos
   venue TEXT,
   status TEXT NOT NULL DEFAULT 'upcoming' CHECK (status IN ('upcoming', 'live', 'finished')),

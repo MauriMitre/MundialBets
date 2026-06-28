@@ -8,6 +8,7 @@ import { formatMatchDate, argentinaInputToUTC, toDatetimeLocalArg } from '@/lib/
 
 const STAGES = [
   { value: 'group',       label: 'Fase de grupos' },
+  { value: 'round_of_32', label: 'Dieciseisavos de final' },
   { value: 'round_of_16', label: 'Octavos de final' },
   { value: 'quarter',     label: 'Cuartos de final' },
   { value: 'semi',        label: 'Semifinal' },
