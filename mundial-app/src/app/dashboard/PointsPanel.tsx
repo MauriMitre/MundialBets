@@ -34,13 +34,21 @@ export interface Prediction {
 }
 
 function getBreakdown(pred: Prediction, events: MatchEvent[]) {
-  const { home_score, away_score, knockout_winner, penalty_home_score, penalty_away_score } = pred.match
+  const { stage, home_score, away_score, knockout_winner, penalty_home_score, penalty_away_score } = pred.match
   const actualWinner =
     home_score > away_score ? 'home' :
     away_score > home_score ? 'away' :
     knockout_winner ?? 'draw'
 
   const correctWinner = pred.predicted_winner === actualWinner
+
+  // Bonus eliminatoria: acertar que a los 90' fue empate (aunque se defina
+  // en alargue/penales). Se suma aparte de "quién pasa".
+  const correctKnockoutDraw =
+    stage !== 'group' &&
+    home_score === away_score &&
+    pred.predicted_home_score !== null &&
+    pred.predicted_home_score === pred.predicted_away_score
 
   const correctPenalties =
     penalty_home_score !== null &&
@@ -77,7 +85,7 @@ function getBreakdown(pred: Prediction, events: MatchEvent[]) {
   const correctAssists = Object.entries(predAssists)
     .reduce((sum, [pid, count]) => sum + Math.min(count, assistCounts[pid] ?? 0), 0)
 
-  return { correctWinner, exactScore, correctScorers, correctAssists, correctPenalties }
+  return { correctWinner, correctKnockoutDraw, exactScore, correctScorers, correctAssists, correctPenalties }
 }
 
 interface NamedCount { id: string; name: string; count: number; hitCount: number }
@@ -154,6 +162,7 @@ export interface ScoringValues {
   scorer: number
   assist: number
   penalty: number
+  knockoutDraw: number
 }
 
 export default function PointsPanel({
@@ -241,8 +250,9 @@ export default function PointsPanel({
           </p>
         ) : (
           userPreds.map(pred => {
-            const { correctWinner, exactScore, correctScorers, correctAssists, correctPenalties } = getBreakdown(pred, matchEvents)
+            const { correctWinner, correctKnockoutDraw, exactScore, correctScorers, correctAssists, correctPenalties } = getBreakdown(pred, matchEvents)
             const { realGoals, realAssists, predGoals, predAssists } = getPlayerLists(pred, matchEvents)
+            const isKnockout = pred.match.stage !== 'group'
             const stage = STAGE_LABELS[pred.match.stage as keyof typeof STAGE_LABELS] ?? pred.match.stage
 
             return (
@@ -275,7 +285,12 @@ export default function PointsPanel({
                 <div className="flex flex-wrap gap-1.5 mt-3 pt-3 border-t border-outline-variant/10">
                   {correctWinner && (
                     <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-green-500/10 text-green-400 border border-green-500/20 font-label">
-                      ✓ Ganador +{scoring.winner}
+                      ✓ {isKnockout ? 'Quién pasa' : 'Ganador'} +{scoring.winner}
+                    </span>
+                  )}
+                  {correctKnockoutDraw && (
+                    <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-teal-500/10 text-teal-400 border border-teal-500/20 font-label">
+                      ✓ Empate a los 90&apos; +{scoring.knockoutDraw}
                     </span>
                   )}
                   {exactScore && (

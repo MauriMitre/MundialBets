@@ -103,6 +103,20 @@ export default function RulesPage() {
           </p>
         </div>
 
+        {/* Empate a los 90' (eliminatorias) */}
+        <div className="glass-card rounded-xl p-6 sm:p-8 border-l-4 border-teal-400/60 relative overflow-hidden md:col-span-2">
+          <div className="flex justify-between items-start mb-8">
+            <span className="text-4xl">🤝</span>
+            <div className="bg-teal-400/10 text-teal-400 font-headline text-3xl font-bold px-4 py-2 rounded-lg">
+              +3 PTS
+            </div>
+          </div>
+          <h3 className="font-headline text-2xl font-bold mb-3 text-on-surface">Empate a los 90&apos; (eliminatorias)</h3>
+          <p className="text-on-surface-variant font-body text-sm leading-relaxed">
+            En fases eliminatorias elegís <span className="text-teal-400 font-semibold">quién pasa de ronda</span> (esos son los +3 del ganador). Pero si el partido <span className="text-teal-400 font-semibold">termina empatado a los 90&apos;</span> y vos cargaste un empate, sumás <span className="text-teal-400 font-semibold">+3 pts</span> extra por haberlo leído — aunque después se defina en alargue o penales. Se apila con &quot;quién pasa&quot; y con el resultado exacto.
+          </p>
+        </div>
+
       </section>
 
       {/* Ejemplo práctico */}
@@ -181,6 +195,13 @@ export default function RulesPage() {
             <h3 className="font-headline text-lg font-bold text-on-surface mb-3">¿Se cuentan los goles en tiempo extra o penales?</h3>
             <p className="text-on-surface-variant font-body leading-relaxed">
               No para goleadores y asistentes — solo se cuentan los goles y asistencias de los 90 minutos reglamentarios. Sin embargo, en fases eliminatorias podés predecir el resultado de la <span className="text-on-surface font-semibold">serie de penales por separado</span> para ganar +5 pts adicionales.
+            </p>
+          </div>
+
+          <div className="bg-surface-container-low rounded-xl p-6">
+            <h3 className="font-headline text-lg font-bold text-on-surface mb-3">En eliminatorias, ¿qué pasa si le pego al empate en los 90&apos; pero se define en el alargue?</h3>
+            <p className="text-on-surface-variant font-body leading-relaxed">
+              Igual sumás. En eliminatorias elegís quién pasa de ronda (+3 si acertás, aunque se defina por penales), y <span className="text-on-surface font-semibold">además +3 si a los 90&apos; terminó empatado y vos cargaste un empate</span>. Por ejemplo, si ponés 2-2 y terminó 1-1 a los 90&apos;, cobrás los +3 del empate; y si clavaste el 1-1, sumás también los +5 del resultado exacto.
             </p>
           </div>
 

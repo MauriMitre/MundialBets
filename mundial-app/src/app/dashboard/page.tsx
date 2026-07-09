@@ -93,6 +93,7 @@ export default async function DashboardPage() {
     scorer:  ruleMap.correct_scorer ?? 2,
     assist:  ruleMap.correct_assist ?? 1,
     penalty: ruleMap.correct_penalty_score ?? 5,
+    knockoutDraw: ruleMap.correct_knockout_draw ?? 3,
   }
 
   const predCountMap: Record<string, number> = {}

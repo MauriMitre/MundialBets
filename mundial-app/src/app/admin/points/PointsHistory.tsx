@@ -39,10 +39,11 @@ interface ScoringValues {
   scorer: number
   assist: number
   penalty: number
+  knockoutDraw: number
 }
 
 function getBreakdown(pred: Prediction, events: MatchEvent[]) {
-  const { home_score, away_score, knockout_winner, penalty_home_score, penalty_away_score } = pred.match
+  const { stage, home_score, away_score, knockout_winner, penalty_home_score, penalty_away_score } = pred.match
   // En eliminatorias definidas por penales el ganador real es knockout_winner
   const actualWinner =
     home_score > away_score ? 'home' :
@@ -50,6 +51,15 @@ function getBreakdown(pred: Prediction, events: MatchEvent[]) {
     knockout_winner ?? 'draw'
 
   const correctWinner = pred.predicted_winner === actualWinner
+
+  // Bonus eliminatoria: acertar que a los 90' fue empate (aunque se defina
+  // en alargue/penales). Se suma aparte de "quién pasa".
+  const correctKnockoutDraw =
+    stage !== 'group' &&
+    home_score === away_score &&
+    pred.predicted_home_score !== null &&
+    pred.predicted_home_score === pred.predicted_away_score
+
   const exactScore =
     pred.predicted_home_score === home_score &&
     pred.predicted_away_score === away_score
@@ -85,7 +95,7 @@ function getBreakdown(pred: Prediction, events: MatchEvent[]) {
   const correctAssists = Object.entries(predAssists)
     .reduce((sum, [pid, count]) => sum + Math.min(count, assistCounts[pid] ?? 0), 0)
 
-  return { correctWinner, exactScore, correctScorers, correctAssists, correctPenalties }
+  return { correctWinner, correctKnockoutDraw, exactScore, correctScorers, correctAssists, correctPenalties }
 }
 
 interface NamedCount { id: string; name: string; count: number; hitCount: number }
@@ -221,8 +231,9 @@ export default function PointsHistory({
       ) : (
         <div className="space-y-3">
           {userPreds.map(pred => {
-            const { correctWinner, exactScore, correctScorers, correctAssists, correctPenalties } = getBreakdown(pred, matchEvents)
+            const { correctWinner, correctKnockoutDraw, exactScore, correctScorers, correctAssists, correctPenalties } = getBreakdown(pred, matchEvents)
             const { realGoals, realAssists, predGoals, predAssists } = getPlayerLists(pred, matchEvents)
+            const isKnockout = pred.match.stage !== 'group'
             const stageLabel = STAGE_LABELS[pred.match.stage as keyof typeof STAGE_LABELS] ?? pred.match.stage
 
             return (
@@ -248,7 +259,12 @@ export default function PointsHistory({
                 <div className="flex flex-wrap gap-2 pt-3 border-t border-white/5">
                   {correctWinner && (
                     <span className="text-xs px-2.5 py-1 rounded-full bg-green-500/10 text-green-400 border border-green-500/20">
-                      ✓ Ganador +{scoring.winner}
+                      ✓ {isKnockout ? 'Quién pasa' : 'Ganador'} +{scoring.winner}
+                    </span>
+                  )}
+                  {correctKnockoutDraw && (
+                    <span className="text-xs px-2.5 py-1 rounded-full bg-teal-500/10 text-teal-400 border border-teal-500/20">
+                      ✓ Empate a los 90&apos; +{scoring.knockoutDraw}
                     </span>
                   )}
                   {exactScore && (
