@@ -4,7 +4,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { computeStandings } from '@/lib/standings'
-import { resolveBracket } from '@/lib/knockout'
+import { resolveFullBracket, type KoRow } from '@/lib/knockout'
 import { flagUrl } from '@/lib/flags'
 import KnockoutBracket from './KnockoutBracket'
 
@@ -36,10 +36,29 @@ export default async function GroupsPage() {
   }
   const groups = [...byGroup.keys()].sort()
 
-  // Tablas por grupo (reutilizadas para las posiciones y el cuadro de 16avos)
+  // Tablas por grupo (reutilizadas para las posiciones y el cuadro)
   const standingsByGroup = new Map(groups.map(g => [g, computeStandings(byGroup.get(g)!)]))
+
+  // Partidos de eliminatorias reales (para armar el cuadro con resultados)
+  const { data: koMatches } = await supabase
+    .from('matches')
+    .select(`
+      stage, home_score, away_score, status,
+      homeTeam:home_team_id ( code ),
+      awayTeam:away_team_id ( code )
+    `)
+    .in('stage', ['round_of_32', 'round_of_16', 'quarter', 'semi', 'third_place', 'final'])
+  const ko: KoRow[] = ((koMatches ?? []) as any[]).map(m => ({
+    stage: m.stage,
+    homeCode: m.homeTeam?.code ?? null,
+    awayCode: m.awayTeam?.code ?? null,
+    homeScore: m.home_score,
+    awayScore: m.away_score,
+    status: m.status,
+  }))
+
   // Solo tiene sentido el cuadro con los 12 grupos completos cargados
-  const bracket = groups.length === 12 ? resolveBracket(standingsByGroup) : null
+  const bracket = groups.length === 12 ? resolveFullBracket(standingsByGroup, ko) : null
 
   return (
     <div className="max-w-5xl mx-auto">
@@ -62,7 +81,7 @@ export default async function GroupsPage() {
         </div>
       )}
 
-      {bracket && <KnockoutBracket matches={bracket} />}
+      {bracket && <KnockoutBracket bracket={bracket} />}
     </div>
   )
 }
