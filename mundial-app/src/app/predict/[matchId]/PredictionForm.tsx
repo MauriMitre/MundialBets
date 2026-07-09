@@ -310,6 +310,12 @@ export default function PredictionForm({ match, players, existing, readonly, use
         <p className="font-body text-xs text-on-surface-variant/60 mb-3">
           Obligatorio — +5 pts si acertás el marcador
         </p>
+        {isKnockout && (
+          <p className="flex items-start gap-1.5 font-body text-xs text-teal-400/90 bg-teal-400/10 border border-teal-400/20 rounded-lg px-3 py-2 mb-3">
+            <span>🤝</span>
+            <span>+3 extra si cargás un empate y el partido termina igualado a los 90&apos; — aunque después se defina en alargue o penales.</span>
+          </p>
+        )}
         <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
           <div className="text-center">
             <p className="font-label text-xs text-on-surface-variant/60 mb-1">{match.homeTeam.name}</p>
